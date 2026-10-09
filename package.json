@@ -1,0 +1,30 @@
+{
+  "name": "ajson-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-native software development environment for intelligent coding, project understanding, autonomous agents, testing, debugging and deployment.",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "electron"
+  ],
+  "scripts": {
+    "dev": "echo \"[Day 0 Setup] Dev server will be configured in Day 1\" && exit 0",
+    "build": "echo \"[Day 0 Setup] Build pipeline will be configured in Day 1\" && exit 0",
+    "typecheck": "echo \"[Day 0 Setup] TypeScript type checking will be configured in Day 1\" && exit 0",
+    "test": "echo \"[Day 0 Setup] Test suites will be configured in Day 1\" && exit 0",
+    "lint": "echo \"[Day 0 Setup] Linting will be configured in Day 1\" && exit 0"
+  },
+  "keywords": [
+    "ajson-studio",
+    "ai-native-ide",
+    "developer-tools",
+    "desktop-app",
+    "code-editor"
+  ],
+  "author": "Ritesh Verma <vermaritesh24106867@gmail.com>",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
