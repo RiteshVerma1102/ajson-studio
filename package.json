@@ -1,0 +1,30 @@
+{
+  "name": "ajson-studio",
+  "version": "0.1.0",
+  "description": "Ajson Studio - AI-Native Desktop Development Environment",
+  "private": true,
+  "main": "dist-electron/main/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/fileOperations.test.mjs tests/projectSearch.test.mjs tests/day2WorkflowVerification.mjs tests/commandPalette.test.mjs tests/workspacePersistence.test.mjs tests/aiIntegration.test.mjs tests/day4CodeContext.test.mjs"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "lucide-react": "^0.468.0",
+    "monaco-editor": "^0.52.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-electron": "^0.29.0"
+  }
+}
