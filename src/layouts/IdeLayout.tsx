@@ -16,6 +16,8 @@ interface IdeLayoutProps {
   bottomPanelHeight?: number
   onBottomPanelHeightChange?: (h: number) => void
   aiPanelOpen: boolean
+  aiPanelWidth?: number
+  onAiPanelWidthChange?: (w: number) => void
 }
 
 export const IdeLayout: React.FC<IdeLayoutProps> = ({
@@ -34,9 +36,12 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
   bottomPanelHeight = 210,
   onBottomPanelHeightChange,
   aiPanelOpen,
+  aiPanelWidth = 380,
+  onAiPanelWidthChange,
 }) => {
   const [isDraggingSidebar, setIsDraggingSidebar] = useState(false)
   const [isDraggingBottom, setIsDraggingBottom] = useState(false)
+  const [isDraggingAiPanel, setIsDraggingAiPanel] = useState(false)
 
   // Sidebar drag handler
   const handleSidebarPointerDown = (e: React.PointerEvent) => {
@@ -95,6 +100,41 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
     window.addEventListener('pointerup', onPointerUp)
   }
 
+  // AI Panel drag handler
+  const handleAiPanelPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault()
+    setIsDraggingAiPanel(true)
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      const newWidth = Math.max(280, Math.min(680, window.innerWidth - moveEvent.clientX))
+      onAiPanelWidthChange?.(newWidth)
+    }
+
+    const onPointerUp = () => {
+      setIsDraggingAiPanel(false)
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }
+
+  // AI Panel keyboard resize handler
+  const handleAiPanelKeyDown = (e: React.KeyboardEvent) => {
+    const step = e.shiftKey ? 50 : 10
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      onAiPanelWidthChange?.(Math.min(680, aiPanelWidth + step))
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      onAiPanelWidthChange?.(Math.max(280, aiPanelWidth - step))
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      onAiPanelWidthChange?.(380)
+    }
+  }
+
   // Bottom panel keyboard resize handler
   const handleBottomKeyDown = (e: React.KeyboardEvent) => {
     const step = e.shiftKey ? 50 : 10
@@ -112,8 +152,8 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
 
   return (
     <div
-      className={`flex flex-col w-screen h-screen overflow-hidden bg-[#090b10] text-slate-200 ${
-        isDraggingSidebar || isDraggingBottom ? 'select-none pointer-events-auto' : ''
+      className={`flex flex-col w-screen h-screen overflow-hidden bg-[#0e0f13] text-slate-200 ${
+        isDraggingSidebar || isDraggingBottom || isDraggingAiPanel ? 'select-none pointer-events-auto' : ''
       }`}
     >
       {/* Top Application Header */}
@@ -139,15 +179,15 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
             tabIndex={0}
             onPointerDown={handleSidebarPointerDown}
             onKeyDown={handleSidebarKeyDown}
-            className={`w-1 cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-cyan-500 focus:ring-1 focus:ring-cyan-400 ${
-              isDraggingSidebar ? 'bg-cyan-500' : 'bg-[#181d2a] hover:bg-cyan-500/60'
+            className={`w-1 cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-violet-500 focus:ring-1 focus:ring-violet-400 ${
+              isDraggingSidebar ? 'bg-violet-500' : 'bg-[#1e202a] hover:bg-violet-500/60'
             }`}
             title="Drag to resize sidebar (Arrow Left/Right to adjust)"
           />
         )}
 
         {/* Central Editor & Bottom Panel Area */}
-        <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden bg-[#0c0e15]">
+        <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden bg-[#101115]">
           {/* Tabs row */}
           {editorTabs}
 
@@ -168,8 +208,8 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
               tabIndex={0}
               onPointerDown={handleBottomPointerDown}
               onKeyDown={handleBottomKeyDown}
-              className={`h-1 cursor-row-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-cyan-500 focus:ring-1 focus:ring-cyan-400 ${
-                isDraggingBottom ? 'bg-cyan-500' : 'bg-[#181d2a] hover:bg-cyan-500/60'
+              className={`h-1 cursor-row-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-violet-500 focus:ring-1 focus:ring-violet-400 ${
+                isDraggingBottom ? 'bg-violet-500' : 'bg-[#1e202a] hover:bg-violet-500/60'
               }`}
               title="Drag to resize bottom panel (Arrow Up/Down to adjust)"
             />
@@ -179,8 +219,34 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
           {bottomPanelOpen && bottomPanel}
         </div>
 
+        {/* Resizable Divider between Central Editor and Right AI Panel */}
+        {aiPanelOpen && onAiPanelWidthChange && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-valuenow={aiPanelWidth}
+            aria-valuemin={280}
+            aria-valuemax={680}
+            aria-label="AI Panel resize divider"
+            tabIndex={0}
+            onPointerDown={handleAiPanelPointerDown}
+            onKeyDown={handleAiPanelKeyDown}
+            className={`w-1 cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-violet-500 focus:ring-1 focus:ring-violet-400 ${
+              isDraggingAiPanel ? 'bg-violet-500' : 'bg-[#1e202a] hover:bg-violet-500/60'
+            }`}
+            title="Drag to resize AI Assistant Panel (Arrow Left/Right to adjust)"
+          />
+        )}
+
         {/* Right AI Assistant Panel */}
-        {aiPanelOpen && aiPanel}
+        {aiPanelOpen && (
+          <div
+            style={{ width: `${aiPanelWidth}px` }}
+            className="h-full flex flex-col shrink-0 overflow-hidden bg-[#12141a] border-l border-[#20222c]"
+          >
+            {aiPanel}
+          </div>
+        )}
       </div>
 
       {/* Bottom Status Bar */}

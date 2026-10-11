@@ -40,7 +40,7 @@ export interface FileTreeNode {
 
 export type ActivityView = 'explorer' | 'search' | 'git' | 'extensions'
 
-export type BottomTab = 'terminal' | 'problems' | 'output'
+export type BottomTab = 'terminal' | 'problems' | 'output' | 'tests'
 
 export interface CursorPosition {
   lineNumber: number

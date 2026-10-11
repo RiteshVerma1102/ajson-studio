@@ -162,24 +162,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-start pt-[12vh] px-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-center items-start pt-[12vh] px-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="w-[580px] max-w-[94vw] bg-[#0c0f17] border border-[#232b40] rounded-xl shadow-2xl flex flex-col overflow-hidden text-xs text-slate-200"
+        className="w-[580px] max-w-[94vw] bg-[#12131a] border border-[#252838] rounded-xl shadow-2xl flex flex-col overflow-hidden text-xs text-slate-200"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Command Input Header */}
-        <div className="relative flex items-center px-3.5 py-3 border-b border-[#1b2235] bg-[#101421]">
-          <Search className="w-4 h-4 text-cyan-400 absolute left-3.5 pointer-events-none" />
+        <div className="relative flex items-center px-3.5 py-3 border-b border-[#21232f] bg-[#151722]">
+          <Search className="w-4 h-4 text-violet-400 absolute left-3.5 pointer-events-none" />
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command or search... (e.g. Save, Open, Toggle)"
+            placeholder="Type a command or search... (e.g. Save, Open, Toggle, Diff)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent pl-7 pr-7 text-slate-100 placeholder-slate-500 text-xs focus:outline-none"
+            className="w-full bg-transparent pl-7 pr-7 text-slate-100 placeholder-slate-500 text-xs focus:outline-none font-sans"
           />
           {searchQuery && (
             <button
@@ -194,7 +194,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         {/* Command List Area */}
         <div
           ref={listRef}
-          className="max-h-[360px] overflow-y-auto p-1.5 space-y-0.5 divide-y divide-[#151b2a]/30"
+          className="max-h-[360px] overflow-y-auto p-1.5 space-y-0.5 divide-y divide-[#1e202c]/30"
         >
           {filteredCommands.length > 0 ? (
             filteredCommands.map((cmd, idx) => {
@@ -207,8 +207,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`px-3 py-2 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${
                     isSelected
-                      ? 'bg-[#182035] text-white border border-cyan-500/30'
-                      : 'hover:bg-[#121624] text-slate-300 border border-transparent'
+                      ? 'bg-violet-950/40 text-white border border-violet-500/40 shadow-sm shadow-violet-950/20'
+                      : 'hover:bg-[#181a24] text-slate-300 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5 min-w-0">
@@ -224,7 +224,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   </div>
 
                   {cmd.shortcut && (
-                    <kbd className="ml-3 shrink-0 px-2 py-0.5 bg-[#101421] border border-[#232c42] rounded text-[10.5px] font-mono text-slate-400">
+                    <kbd className="ml-3 shrink-0 px-2 py-0.5 bg-[#171924] border border-[#262838] rounded text-[10.5px] font-mono text-slate-400">
                       {cmd.shortcut}
                     </kbd>
                   )}
@@ -242,19 +242,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Keyboard Navigation Footer */}
-        <div className="px-3.5 py-2 border-t border-[#1b2235] bg-[#090c13] flex items-center justify-between text-[11px] text-slate-500">
+        <div className="px-3.5 py-2 border-t border-[#20222e] bg-[#0e0f14] flex items-center justify-between text-[11px] text-slate-500 font-mono">
           <div className="flex items-center space-x-3">
             <span className="flex items-center space-x-1">
-              <kbd className="bg-[#121622] px-1 rounded border border-[#20273a] text-[10px]">↑</kbd>
-              <kbd className="bg-[#121622] px-1 rounded border border-[#20273a] text-[10px]">↓</kbd>
+              <kbd className="bg-[#171924] px-1 rounded border border-[#262838] text-[10px]">↑</kbd>
+              <kbd className="bg-[#171924] px-1 rounded border border-[#262838] text-[10px]">↓</kbd>
               <span>to navigate</span>
             </span>
             <span className="flex items-center space-x-1">
-              <kbd className="bg-[#121622] px-1.5 rounded border border-[#20273a] text-[10px]">↵</kbd>
+              <kbd className="bg-[#171924] px-1.5 rounded border border-[#262838] text-[10px]">↵</kbd>
               <span>to execute</span>
             </span>
             <span className="flex items-center space-x-1">
-              <kbd className="bg-[#121622] px-1 rounded border border-[#20273a] text-[10px]">esc</kbd>
+              <kbd className="bg-[#171924] px-1 rounded border border-[#262838] text-[10px]">esc</kbd>
               <span>to close</span>
             </span>
           </div>

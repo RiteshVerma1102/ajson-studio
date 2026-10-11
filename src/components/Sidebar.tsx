@@ -62,10 +62,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div
       style={{ width: width ? `${width}px` : undefined }}
-      className={`${width ? '' : 'w-64'} bg-[#0d1017] border-r border-[#1b2030] flex flex-col h-full select-none text-xs shrink-0`}
+      className={`${width ? '' : 'w-64'} bg-[#121419] border-r border-[#20222b] flex flex-col h-full select-none text-xs shrink-0`}
     >
       {/* View Header */}
-      <div className="h-9 px-3 border-b border-[#1b2030] flex items-center justify-between text-slate-400">
+      <div className="h-9 px-3 border-b border-[#20222b] flex items-center justify-between text-slate-400">
         <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300">
           {activeView === 'explorer' && 'Explorer'}
           {activeView === 'search' && 'Search'}
@@ -114,28 +114,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* SOURCE CONTROL VIEW */}
         {activeView === 'git' && (
           <div className="p-3 space-y-3">
-            <div className="flex items-center justify-between text-slate-400 pb-1 border-b border-[#1b2030]">
+            <div className="flex items-center justify-between text-slate-400 pb-1 border-b border-[#20222b]">
               <span className="text-[11px] font-medium flex items-center space-x-1">
                 <span>Branch:</span>
-                <span className="text-cyan-400 font-mono">development*</span>
+                <span className="text-violet-400 font-mono">main*</span>
               </span>
-              <span className="text-[10px] bg-[#1a2133] text-slate-300 px-1.5 py-0.5 rounded">Active</span>
+              <span className="text-[10px] bg-violet-950/50 text-violet-300 border border-violet-800/40 px-1.5 py-0.5 rounded">Active</span>
             </div>
 
             <div className="space-y-1.5">
               <textarea
-                placeholder="Commit message (e.g. feat: add file explorer)"
+                placeholder="Commit message (e.g. feat: add AST guardrails)"
                 value={commitMessage}
                 onChange={(e) => setCommitMessage(e.target.value)}
                 rows={2}
-                className="w-full bg-[#121622] border border-[#20273b] rounded p-2 text-slate-200 placeholder-slate-500 text-xs focus:border-cyan-500 resize-none font-mono"
+                className="w-full bg-[#161822] border border-[#262838] rounded-lg p-2 text-slate-200 placeholder-slate-500 text-xs focus:border-violet-500 resize-none font-mono"
               />
               <button
                 disabled={!commitMessage}
-                className="w-full py-1.5 px-3 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded flex items-center justify-center space-x-1.5 transition-all text-xs shadow"
+                className="w-full py-1.5 px-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg flex items-center justify-center space-x-1.5 transition-all text-xs shadow-md shadow-violet-600/20"
               >
                 <GitCommit className="w-3.5 h-3.5" />
-                <span>Commit</span>
+                <span>Commit & Push</span>
               </button>
             </div>
 

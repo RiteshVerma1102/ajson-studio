@@ -140,7 +140,7 @@ export interface WorkspaceState {
   activeActivityView: 'explorer' | 'search' | 'git' | 'extensions'
   bottomPanelOpen: boolean
   bottomPanelHeight?: number
-  activeBottomTab: 'terminal' | 'problems' | 'output'
+  activeBottomTab: 'terminal' | 'problems' | 'output' | 'tests'
 }
 
 export interface WorkspaceGetStateResult {

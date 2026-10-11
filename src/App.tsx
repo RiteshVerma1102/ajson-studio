@@ -9,6 +9,12 @@ import { StatusBar } from './components/StatusBar'
 import { AiPanel } from './components/AiPanel'
 import { CommandPalette } from './components/CommandPalette'
 import { IdeLayout } from './layouts/IdeLayout'
+import { sampleFiles, sampleFileTree } from './editor/sampleFiles'
+import { DiffReviewModal } from './components/DiffReviewModal'
+import { AiCodeGenOverlay } from './components/AiCodeGenOverlay'
+import { CodeExplanationModal } from './components/CodeExplanationModal'
+import { MultiFileEditsModal } from './components/MultiFileEditsModal'
+import { ModelSettingsModal } from './components/ModelSettingsModal'
 import {
   EditorTab,
   ActivityView,
@@ -23,9 +29,12 @@ import { getLanguageFromPath, isBinaryExtension } from './utils/fileUtils'
 import { FolderOpen, FileCode2, Plus, AlertCircle, CheckCircle2, X } from 'lucide-react'
 
 export const App: React.FC = () => {
-  // Project Workspace State (Day 2)
-  const [projectRoot, setProjectRoot] = useState<{ path: string; name: string } | null>(null)
-  const [tree, setTree] = useState<FileTreeNode[]>([])
+  // Project Workspace State
+  const [projectRoot, setProjectRoot] = useState<{ path: string; name: string } | null>({
+    path: 'quantum-mesh-core',
+    name: 'quantum-mesh-core',
+  })
+  const [tree, setTree] = useState<FileTreeNode[]>(sampleFileTree)
   const [isLoadingTree, setIsLoadingTree] = useState<boolean>(false)
   const [treeError, setTreeError] = useState<string | null>(null)
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([])
@@ -33,11 +42,19 @@ export const App: React.FC = () => {
   const isInitialLoadDoneRef = useRef<boolean>(false)
 
   // Editor Tabs State
-  const [tabs, setTabs] = useState<EditorTab[]>([])
-  const [activeTabId, setActiveTabId] = useState<string>('')
+  const [tabs, setTabs] = useState<EditorTab[]>(sampleFiles)
+  const [activeTabId, setActiveTabId] = useState<string>('src/ai/AgentCoordinator.ts')
   const [revealLocation, setRevealLocation] = useState<(EditorLocation & { timestamp?: number }) | null>(null)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false)
   const monacoEditorRef = useRef<MonacoEditorHandle>(null)
+
+  // Additional Screen/State Modals
+  const [isDiffReviewOpen, setIsDiffReviewOpen] = useState<boolean>(false)
+  const [isAiCodeGenOpen, setIsAiCodeGenOpen] = useState<boolean>(false)
+  const [isCodeExplainOpen, setIsCodeExplainOpen] = useState<boolean>(false)
+  const [isMultiFileEditsOpen, setIsMultiFileEditsOpen] = useState<boolean>(false)
+  const [isModelSettingsOpen, setIsModelSettingsOpen] = useState<boolean>(false)
+  const [activeStateView, setActiveStateView] = useState<string>('workspace')
 
   // Map open in-memory tab buffers for project-wide search
   const unsavedBuffers = useMemo(() => {
@@ -46,12 +63,13 @@ export const App: React.FC = () => {
 
   // Layout Panels State
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true)
-  const [sidebarWidth, setSidebarWidth] = useState<number>(256)
+  const [sidebarWidth, setSidebarWidth] = useState<number>(260)
   const [activeActivityView, setActiveActivityView] = useState<ActivityView>('explorer')
   const [bottomPanelOpen, setBottomPanelOpen] = useState<boolean>(true)
-  const [bottomPanelHeight, setBottomPanelHeight] = useState<number>(210)
+  const [bottomPanelHeight, setBottomPanelHeight] = useState<number>(200)
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTab>('terminal')
-  const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(false)
+  const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(true)
+  const [aiPanelWidth, setAiPanelWidth] = useState<number>(390)
 
   // Editor selection state for AI code context
   const [editorSelection, setEditorSelection] = useState<{
@@ -1132,6 +1150,8 @@ export const App: React.FC = () => {
         bottomPanelHeight={bottomPanelHeight}
         onBottomPanelHeightChange={setBottomPanelHeight}
         aiPanelOpen={aiPanelOpen}
+        aiPanelWidth={aiPanelWidth}
+        onAiPanelWidthChange={setAiPanelWidth}
         header={
           <Header
             sidebarOpen={sidebarOpen}
@@ -1141,8 +1161,22 @@ export const App: React.FC = () => {
             aiPanelOpen={aiPanelOpen}
             onToggleAiPanel={() => setAiPanelOpen((prev) => !prev)}
             activeFileName={activeTab?.name}
-            projectName={projectRoot?.name}
+            projectName={projectRoot?.name || 'quantum-mesh-core'}
             onCloseWindow={handleCloseWindow}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+            onRunProject={() => {
+              showToast('Running verification test suite (96 tests)...', 'success')
+              setActiveBottomTab('tests')
+              setBottomPanelOpen(true)
+            }}
+            onOpenSettings={() => setIsModelSettingsOpen(true)}
+            onOpenModelSettings={() => setIsModelSettingsOpen(true)}
+            onOpenAiCodeGen={() => setIsAiCodeGenOpen(true)}
+            onOpenDiffReview={() => setIsDiffReviewOpen(true)}
+            onOpenCodeExplain={() => setIsCodeExplainOpen(true)}
+            onOpenMultiFileEdits={() => setIsMultiFileEditsOpen(true)}
+            activeStateView={activeStateView}
+            onSelectStateView={setActiveStateView}
           />
         }
         activityBar={
@@ -1151,6 +1185,7 @@ export const App: React.FC = () => {
             onSelectView={handleSelectActivityView}
             aiPanelOpen={aiPanelOpen}
             onToggleAiPanel={() => setAiPanelOpen((prev) => !prev)}
+            onOpenSettings={() => setIsModelSettingsOpen(true)}
           />
         }
         sidebar={
@@ -1197,6 +1232,9 @@ export const App: React.FC = () => {
             }}
             onSaveTabAs={() => handleSaveAs()}
             onNewTab={handleNewTab}
+            onOpenCodeExplain={() => setIsCodeExplainOpen(true)}
+            onOpenDiffReview={() => setIsDiffReviewOpen(true)}
+            onOpenAiCodeGen={() => setIsAiCodeGenOpen(true)}
           />
         }
         editor={
@@ -1372,7 +1410,13 @@ export const App: React.FC = () => {
             activeFileLanguage={activeTab?.language}
             activeFileContent={activeTab?.content}
             editorSelection={editorSelection}
-            onInsertCode={(code) => monacoEditorRef.current?.insertText(code)}
+            onInsertCode={(code) => {
+              monacoEditorRef.current?.insertText(code)
+              showToast('Code inserted at cursor', 'success')
+            }}
+            onOpenDiffReview={() => setIsDiffReviewOpen(true)}
+            onOpenCodeExplain={() => setIsCodeExplainOpen(true)}
+            onOpenModelSettings={() => setIsModelSettingsOpen(true)}
           />
         }
         statusBar={
@@ -1381,6 +1425,7 @@ export const App: React.FC = () => {
             language={activeTab?.language || 'plaintext'}
             aiPanelOpen={aiPanelOpen}
             onToggleAiPanel={() => setAiPanelOpen((prev) => !prev)}
+            onOpenModelSettings={() => setIsModelSettingsOpen(true)}
           />
         }
       />
@@ -1478,6 +1523,46 @@ export const App: React.FC = () => {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         commands={commandList}
+      />
+
+      {/* Side-by-Side Diff Review Modal */}
+      <DiffReviewModal
+        isOpen={isDiffReviewOpen}
+        onClose={() => setIsDiffReviewOpen(false)}
+        fileName={activeTab?.path || 'src/ai/AgentCoordinator.ts'}
+        onApplyChanges={() => showToast('Diff changes applied to AgentCoordinator.ts', 'success')}
+      />
+
+      {/* AI Code Generation Inline Overlay */}
+      <AiCodeGenOverlay
+        isOpen={isAiCodeGenOpen}
+        onClose={() => setIsAiCodeGenOpen(false)}
+        onAccept={(code) => {
+          monacoEditorRef.current?.insertText(code)
+          showToast('Generated code inserted into buffer', 'success')
+        }}
+      />
+
+      {/* Code Explanation Modal */}
+      <CodeExplanationModal
+        isOpen={isCodeExplainOpen}
+        onClose={() => setIsCodeExplainOpen(false)}
+        symbolName="generatePatchStream()"
+        filePath={activeTab?.path || 'src/ai/AgentCoordinator.ts'}
+      />
+
+      {/* Multi-File Edits (Composer) Modal */}
+      <MultiFileEditsModal
+        isOpen={isMultiFileEditsOpen}
+        onClose={() => setIsMultiFileEditsOpen(false)}
+        onApplyAll={() => showToast('Batch applied changes across 3 files', 'success')}
+      />
+
+      {/* Model & AI Provider Settings Modal */}
+      <ModelSettingsModal
+        isOpen={isModelSettingsOpen}
+        onClose={() => setIsModelSettingsOpen(false)}
+        onSave={() => showToast('Model provider settings updated', 'success')}
       />
 
       {/* Global Notification Toast */}

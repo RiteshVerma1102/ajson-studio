@@ -6,6 +6,7 @@ import {
   Boxes,
   Sparkles,
   Settings,
+  User,
 } from 'lucide-react'
 import { ActivityView } from '../types/editor'
 
@@ -14,6 +15,7 @@ interface ActivityBarProps {
   onSelectView: (view: ActivityView) => void
   aiPanelOpen: boolean
   onToggleAiPanel: () => void
+  onOpenSettings?: () => void
 }
 
 export const ActivityBar: React.FC<ActivityBarProps> = ({
@@ -21,16 +23,22 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
   onSelectView,
   aiPanelOpen,
   onToggleAiPanel,
+  onOpenSettings,
 }) => {
-  const primaryActivities: Array<{ id: ActivityView; label: string; icon: React.ReactNode }> = [
-    { id: 'explorer', label: 'Explorer', icon: <Files className="w-5 h-5" /> },
-    { id: 'search', label: 'Search', icon: <Search className="w-5 h-5" /> },
-    { id: 'git', label: 'Source Control', icon: <GitBranch className="w-5 h-5" /> },
-    { id: 'extensions', label: 'Extensions', icon: <Boxes className="w-5 h-5" /> },
+  const primaryActivities: Array<{
+    id: ActivityView
+    label: string
+    icon: React.ReactNode
+    badge?: number | string
+  }> = [
+    { id: 'explorer', label: 'Explorer (Ctrl+Shift+E)', icon: <Files className="w-4 h-4" /> },
+    { id: 'search', label: 'Search (Ctrl+Shift+F)', icon: <Search className="w-4 h-4" /> },
+    { id: 'git', label: 'Source Control (Ctrl+Shift+G)', icon: <GitBranch className="w-4 h-4" />, badge: 2 },
+    { id: 'extensions', label: 'Extensions (Ctrl+Shift+X)', icon: <Boxes className="w-4 h-4" /> },
   ]
 
   return (
-    <aside className="w-12 bg-[#090b10] border-r border-[#1b2030] flex flex-col justify-between items-center py-2 select-none z-40">
+    <aside className="w-12 bg-[#0c0d11] border-r border-[#20222b] flex flex-col justify-between items-center py-2.5 select-none z-40">
       {/* Top primary actions */}
       <div className="flex flex-col items-center space-y-1 w-full">
         {primaryActivities.map((item) => {
@@ -40,43 +48,58 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
               key={item.id}
               onClick={() => onSelectView(item.id)}
               title={item.label}
-              className={`relative w-10 h-10 flex items-center justify-center rounded-lg transition-all group ${
+              className={`relative w-9 h-9 flex items-center justify-center rounded-lg transition-all group ${
                 isActive
-                  ? 'text-cyan-400 bg-[#141824]'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-[#121622]'
+                  ? 'text-violet-300 bg-violet-950/40 border border-violet-800/40'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#161820]'
               }`}
             >
               {isActive && (
-                <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-cyan-400 rounded-r" />
+                <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-violet-400 rounded-r" />
               )}
               {item.icon}
+              {item.badge && (
+                <span className="absolute top-1 right-1 px-1 min-w-[14px] h-3.5 rounded-full bg-violet-600 text-white text-[9px] font-mono font-bold flex items-center justify-center shadow-sm">
+                  {item.badge}
+                </span>
+              )}
             </button>
           )
         })}
 
         {/* AI Copilot shortcut in activity bar */}
-        <div className="w-6 h-px bg-[#1a2030] my-2" />
+        <div className="w-5 h-px bg-[#1f212c] my-2" />
 
         <button
           onClick={onToggleAiPanel}
-          title="Ajson AI Architect (Preview)"
-          className={`relative w-10 h-10 flex items-center justify-center rounded-lg transition-all ${
+          title="Ajson AI Agent (Ctrl+L)"
+          className={`relative w-9 h-9 flex items-center justify-center rounded-lg transition-all ${
             aiPanelOpen
-              ? 'text-indigo-400 bg-indigo-950/40 border border-indigo-800/40 shadow-sm shadow-indigo-500/10'
-              : 'text-indigo-400/70 hover:text-indigo-300 hover:bg-[#16172e]'
+              ? 'text-violet-300 bg-violet-950/60 border border-violet-500/60 shadow-md shadow-violet-600/30'
+              : 'text-violet-400/80 hover:text-violet-200 hover:bg-[#1a1b28]'
           }`}
         >
-          <Sparkles className="w-5 h-5" />
+          <Sparkles className="w-4 h-4" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-400 animate-ping opacity-75" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-500" />
         </button>
       </div>
 
-      {/* Bottom actions */}
-      <div className="flex flex-col items-center space-y-1 w-full">
+      {/* Bottom actions: Account & Settings */}
+      <div className="flex flex-col items-center space-y-1.5 w-full">
         <button
-          title="Settings"
-          className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 hover:bg-[#121622] transition-colors"
+          title="Developer Profile"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#161820] transition-colors"
         >
-          <Settings className="w-5 h-5" />
+          <User className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={onOpenSettings}
+          title="Settings (Ctrl+,)"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#161820] transition-colors"
+        >
+          <Settings className="w-4 h-4" />
         </button>
       </div>
     </aside>
