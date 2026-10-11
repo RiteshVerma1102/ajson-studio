@@ -9,14 +9,13 @@ An Architectural Decision Record captures an important architectural decision ma
 
 ---
 
-## Planned Future ADRs (Pending Execution)
-The following topics will be addressed and formally recorded as development progresses:
+## Architecture Decision Records
 
-- **ADR-001** — Desktop application architecture (Electron vs alternatives, process isolation model)
-- **ADR-002** — AI provider abstraction & streaming protocol
-- **ADR-003** — Project indexing strategy (AST, Tree-sitter, embeddings, and vector store)
-- **ADR-004** — Agent tool execution & permission gating
-- **ADR-005** — Security model & process sandboxing
+- **ADR-001** — Desktop application architecture (Electron, process isolation, Monaco integration) — *Accepted*
+- **ADR-002** — [AI Provider Abstraction & Credential Security](adr-002-ai-provider-abstraction.md) — *Accepted*
+- **ADR-003** — Project indexing strategy (AST, Tree-sitter, embeddings, and vector store) — *Planned*
+- **ADR-004** — Agent tool execution & permission gating — *Planned*
+- **ADR-005** — Security model & process sandboxing — *Planned*
 
 ---
 

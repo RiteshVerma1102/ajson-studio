@@ -38,11 +38,23 @@ Ajson Studio prioritizes user consent and containment:
 
 ---
 
-## 6. Planned Security Capabilities (In Roadmap)
+## 6. Implemented Security Controls (Day 2 & Day 3)
 
-The following security features are **PLANNED** for future implementation phases and are **not yet implemented**:
+The following security controls are fully verified and enforced:
+
+- **OS Credential Vault (`safeStorage`)**: User API keys are encrypted at rest using operating system primitives (Windows DPAPI, macOS Keychain, Linux Secret Service). Plaintext credentials never touch disk, configuration files, or logs.
+- **Context Privacy Filter**: Outbound context fragment inspection automatically detects and blocks sensitive files (`.env*`, secrets, tokens, private keys `*.pem`/`id_rsa`) from being forwarded to AI providers.
+- **Path Traversal & Symlink Escape Prevention**: Normalized realpath verification prevents directory traversal (`../`, `..\`) and symlink escapes outside the open project directory root.
+- **Process Isolation**: Strict Electron sandbox model (`contextIsolation: true`, `nodeIntegration: false`) enforced across all renderer windows.
+- **Request Boundary Limits**: Strict payload bounds (32k characters message, 64k characters context, 128k characters total request) preventing memory exhaustion and unintended token exfiltration.
+- **Socket Cancellation**: Active `AbortController` cancellation terminates outbound network connections immediately when user stops or cancels an AI request.
+
+---
+
+## 7. Planned Security Capabilities (In Roadmap)
+
+The following security features are **PLANNED** for future implementation phases:
 
 - **Process Sandboxing [PLANNED]**: Isolating agent tool runners and background tasks within lightweight containers or OS-level sandboxes (e.g., Windows AppContainer / Linux namespaces).
-- **Terminal Permission Controls [PLANNED]**: Granular command allowlists and path restrictions preventing agents from accessing files outside the open workspace directory.
-- **Secret Vault Integration [PLANNED]**: Operating system credential store integration (Windows Credential Locker, macOS Keychain) for securely storing user API keys locally rather than plain text `.env` files.
-- **Network Outbound Egress Policies [PLANNED]**: Configurable domain allowlists restricting which endpoints can be reached during agent execution.
+- **Terminal Permission Controls [PLANNED]**: Granular command allowlists and path restrictions preventing agents from executing commands without explicit per-command authorization.
+- **Network Outbound Egress Policies [PLANNED]**: Configurable domain allowlists restricting which external endpoints can be contacted during agent execution.

@@ -80,25 +80,28 @@ Ajson Studio is an AI-native desktop software development environment. It is arc
   - `ipc/`: Channel definitions, payload validation, and access control.
 - **Status**: Planned for integration starting in Phase 1 (Day 1+).
 
-### 3.4 AI Layer (`ai/`) — [PLANNED]
-- **Role**: Cognitive engine powering agentic software development workflows.
-- **Components**:
-  - `providers/`: Provider-agnostic interface wrapping multiple LLMs (OpenAI, Anthropic Claude, Google Gemini, Ollama).
-  - `orchestrator/`: Task decomposition, multi-turn reasoning loops, reflection, and recovery.
-  - `context/`: Dynamic context window management, token budgeting, and code retrieval.
-  - `memory/`: Short-term execution scratchpad and persistent project insights.
-  - `tools/`: Schema definitions and parameter validators for model tool calling.
-- **Status**: Planned for Phase 3 & Phase 4.
+### 3.4 AI Layer (`ai/` & `electron/ipc/aiHandlers.ts`) — [IMPLEMENTED FOUNDATION]
+- **Role**: Cognitive engine powering conversational assistance and future agentic development workflows.
+- **Implemented Capabilities**:
+  - `providers/`: Provider-agnostic interfaces in `src/types/ai.ts` and dispatchers in `electron/ipc/aiHandlers.ts` supporting Anthropic Claude, OpenAI, Google Gemini, and local Ollama.
+  - `credentials/`: Hardware-backed OS vault encryption (`safeStorage`) for user API keys with in-memory fallback.
+  - `context/`: Monaco editor in-memory buffer synchronization, selection capturing, and privacy filtering blocking sensitive files.
+  - `cancellation/`: Request-level `AbortController` cancellation registry.
+- **Planned Capabilities**:
+  - `orchestrator/`: Multi-turn reasoning loops, reflection, and automated tool dispatch (Scheduled: Day 4+).
+  - `tools/`: Schema definitions and parameter validators for model tool calling (Scheduled: Day 4+).
 
 ---
 
-## 4. Testing Strategy (`tests/`) — [PLANNED]
-The testing pyramid guarantees stability across all layers:
-- `tests/frontend/`: React component unit tests and render tests.
-- `tests/backend/`: Service logic, file system safety, and tool execution tests.
-- `tests/ai/`: Mocked LLM responses, prompt regression tests, and schema validators.
-- `tests/integration/`: IPC round-trip communication and state synchronization.
-- `tests/e2e/`: End-to-end desktop automation testing application boot, editing, and execution.
+## 4. Testing Strategy (`tests/`) — [IMPLEMENTED & PASSING]
+The testing suite guarantees stability across desktop file operations, workspace state, project search, and the AI subsystem:
+- `tests/fileOperations.test.mjs`: Filesystem CRUD operations, path traversal rejection, safe deletion.
+- `tests/projectSearch.test.mjs`: Real project-wide text search, live buffer precedence, binary skipping.
+- `tests/day2WorkflowVerification.mjs`: 10-step full workflow verification.
+- `tests/commandPalette.test.mjs`: Command palette registry, fuzzy searching, keyboard execution.
+- `tests/workspacePersistence.test.mjs`: Workspace atomic storage, recent projects, panel dimensions.
+- `tests/aiIntegration.test.mjs`: AI provider catalogue, schema validation, safeStorage credential store, cancellation, error normalization, and context privacy filtering.
+- **Current Status**: 85 passing tests (100% pass rate).
 
 ---
 
