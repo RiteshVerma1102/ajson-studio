@@ -59,54 +59,18 @@ type PanelView = 'chat' | 'settings'
 
 const SAMPLE_INITIAL_MESSAGES: AiMessage[] = [
   {
-    id: 'msg-seed-user-1',
-    role: 'user',
-    content: 'Refactor `generatePatchStream` in AgentCoordinator.ts to add speculative windowing and handle incremental AST syntax errors cleanly.',
-    timestamp: Date.now() - 1000 * 60 * 3,
-    contextAttached: true,
-  },
-  {
     id: 'msg-seed-assistant-1',
     role: 'assistant',
-    content: `I've refactored \`generatePatchStream\` to implement **speculative sliding windowing** paired with AST guardrail validation.
+    content: `Welcome to **Ajson Studio AI**! 👋
 
-### Architectural Improvements
-1. **Speculative Windowing:** Incoming tokens accumulate into a sliding buffer until reaching \`windowSize\` (8) or a newline token.
-2. **Incremental AST Guardrail:** Runs \`astValidator.verifyIncremental\` before computing patch diffs, ensuring no broken syntax nodes reach Monaco.
-3. **Speculative Rollback:** Emits \`speculative:rollback\` event upon syntax corruption to roll back token drift automatically.
+I can help you with your JSON files:
+- ✅ **Format & validate** JSON
+- 🔍 **Explain** any JSON structure
+- ✏️ **Generate** JSON from a description
+- 🔄 **Transform** or filter JSON data
 
-\`\`\`typescript
-// Speculative sliding buffer with AST guardrail validation
-const speculativeBuffer: string[] = [];
-const windowSize = this.options.speculativeWindowSize ?? 8;
-const snapshot = await this.astValidator.createSnapshot(request.targetFilePath);
-
-for await (const rawToken of request.streamSource) {
-  speculativeBuffer.push(rawToken);
-  this.metrics.tokensGenerated++;
-
-  if (speculativeBuffer.length >= windowSize || rawToken.includes('\\n')) {
-    const valid = await this.astValidator.verifyIncremental(
-      snapshot, 
-      speculativeBuffer.join('')
-    );
-    if (!valid.isValid) { 
-      this.metrics.rollbackCount++; 
-      this.emit('speculative:rollback', { error: valid.errorNode });
-      speculativeBuffer.length = 0;
-      continue; 
-    }
-    yield this.diffEngine.computeIncrementalPatch(
-      request.originalCode, 
-      speculativeBuffer.join('')
-    );
-    speculativeBuffer.length = 0;
-  }
-}
-\`\`\`
-
-You can apply this directly to your editor or inspect the changes in the side-by-side diff review.`,
-    timestamp: Date.now() - 1000 * 60 * 2,
+Open a JSON file and ask me anything!`,
+    timestamp: Date.now() - 1000 * 30,
   },
 ]
 
@@ -501,9 +465,9 @@ export const AiPanel: React.FC<AiPanelProps> = ({
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
       id: 'session-1',
-      title: 'Refactor generatePatchStream',
+      title: 'Welcome',
       messages: SAMPLE_INITIAL_MESSAGES,
-      timestamp: Date.now() - 1000 * 60 * 10,
+      timestamp: Date.now() - 1000 * 60,
     },
   ])
   const [activeSessionId, setActiveSessionId] = useState('session-1')
@@ -512,10 +476,7 @@ export const AiPanel: React.FC<AiPanelProps> = ({
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'cancelled'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [attachedContext, setAttachedContext] = useState<string[]>([
-    '@AgentCoordinator.ts:48-75',
-    '@StreamingDiffEngine.ts',
-  ])
+  const [attachedContext, setAttachedContext] = useState<string[]>([])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)

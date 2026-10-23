@@ -31,8 +31,8 @@ import { FolderOpen, FileCode2, Plus, AlertCircle, CheckCircle2, X, Sparkles } f
 export const App: React.FC = () => {
   // Project Workspace State
   const [projectRoot, setProjectRoot] = useState<{ path: string; name: string } | null>({
-    path: 'quantum-mesh-core',
-    name: 'quantum-mesh-core',
+    path: 'ajson-studio',
+    name: 'ajson-studio',
   })
   const [tree, setTree] = useState<FileTreeNode[]>(sampleFileTree)
   const [isLoadingTree, setIsLoadingTree] = useState<boolean>(false)
@@ -43,7 +43,7 @@ export const App: React.FC = () => {
 
   // Editor Tabs State
   const [tabs, setTabs] = useState<EditorTab[]>(sampleFiles)
-  const [activeTabId, setActiveTabId] = useState<string>('src/ai/AgentCoordinator.ts')
+  const [activeTabId, setActiveTabId] = useState<string>('sample/user-profile.json')
   const [isSplitView, setIsSplitView] = useState<boolean>(false)
   const [secondaryTabId, setSecondaryTabId] = useState<string | null>(null)
   const [revealLocation, setRevealLocation] = useState<(EditorLocation & { timestamp?: number }) | null>(null)
@@ -1175,7 +1175,7 @@ export const App: React.FC = () => {
             aiPanelOpen={aiPanelOpen}
             onToggleAiPanel={() => setAiPanelOpen((prev) => !prev)}
             activeFileName={activeTab?.name}
-            projectName={projectRoot?.name || 'quantum-mesh-core'}
+            projectName={projectRoot?.name || 'ajson-studio'}
             onCloseWindow={handleCloseWindow}
             onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
             onRunProject={() => {
