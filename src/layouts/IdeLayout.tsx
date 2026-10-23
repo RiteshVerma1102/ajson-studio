@@ -152,7 +152,7 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
 
   return (
     <div
-      className={`flex flex-col w-screen h-screen overflow-hidden bg-[#0e0f13] text-slate-200 ${
+      className={`flex flex-col w-screen h-screen overflow-hidden bg-[#1E1E1E] text-[#CCCCCC] font-sans ${
         isDraggingSidebar || isDraggingBottom || isDraggingAiPanel ? 'select-none pointer-events-auto' : ''
       }`}
     >
@@ -164,7 +164,7 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
         {/* Leftmost Activity Bar */}
         {activityBar}
 
-        {/* Primary Sidebar (Explorer, Search, Git, Extensions) */}
+        {/* Primary Sidebar (Explorer, Search, Git, Extensions, JSON Tools) */}
         {sidebarOpen && sidebar}
 
         {/* Resizable Divider between Sidebar and Central Area */}
@@ -179,20 +179,20 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
             tabIndex={0}
             onPointerDown={handleSidebarPointerDown}
             onKeyDown={handleSidebarKeyDown}
-            className={`w-1 cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-violet-500 focus:ring-1 focus:ring-violet-400 ${
-              isDraggingSidebar ? 'bg-violet-500' : 'bg-[#1e202a] hover:bg-violet-500/60'
+            className={`w-[3px] cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-[#007ACC] ${
+              isDraggingSidebar ? 'bg-[#007ACC]' : 'bg-[#252526] hover:bg-[#007ACC]/70'
             }`}
             title="Drag to resize sidebar (Arrow Left/Right to adjust)"
           />
         )}
 
         {/* Central Editor & Bottom Panel Area */}
-        <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden bg-[#101115]">
-          {/* Tabs row */}
+        <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden bg-[#1E1E1E]">
+          {/* Tabs row & breadcrumbs */}
           {editorTabs}
 
           {/* Monaco Editor viewport */}
-          <div className="flex-1 relative overflow-hidden">
+          <div className="flex-1 relative overflow-hidden bg-[#1E1E1E]">
             {editor}
           </div>
 
@@ -208,8 +208,8 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
               tabIndex={0}
               onPointerDown={handleBottomPointerDown}
               onKeyDown={handleBottomKeyDown}
-              className={`h-1 cursor-row-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-violet-500 focus:ring-1 focus:ring-violet-400 ${
-                isDraggingBottom ? 'bg-violet-500' : 'bg-[#1e202a] hover:bg-violet-500/60'
+              className={`h-[3px] cursor-row-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-[#007ACC] ${
+                isDraggingBottom ? 'bg-[#007ACC]' : 'bg-[#252526] hover:bg-[#007ACC]/70'
               }`}
               title="Drag to resize bottom panel (Arrow Up/Down to adjust)"
             />
@@ -231,8 +231,8 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
             tabIndex={0}
             onPointerDown={handleAiPanelPointerDown}
             onKeyDown={handleAiPanelKeyDown}
-            className={`w-1 cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-violet-500 focus:ring-1 focus:ring-violet-400 ${
-              isDraggingAiPanel ? 'bg-violet-500' : 'bg-[#1e202a] hover:bg-violet-500/60'
+            className={`w-[3px] cursor-col-resize select-none shrink-0 transition-colors z-20 outline-none focus:bg-[#007ACC] ${
+              isDraggingAiPanel ? 'bg-[#007ACC]' : 'bg-[#252526] hover:bg-[#007ACC]/70'
             }`}
             title="Drag to resize AI Assistant Panel (Arrow Left/Right to adjust)"
           />
@@ -242,7 +242,7 @@ export const IdeLayout: React.FC<IdeLayoutProps> = ({
         {aiPanelOpen && (
           <div
             style={{ width: `${aiPanelWidth}px` }}
-            className="h-full flex flex-col shrink-0 overflow-hidden bg-[#12141a] border-l border-[#20222c]"
+            className="h-full flex flex-col shrink-0 overflow-hidden bg-[#181818] border-l border-[#333333]"
           >
             {aiPanel}
           </div>

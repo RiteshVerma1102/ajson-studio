@@ -23,6 +23,10 @@ import {
   CornerDownLeft,
   AtSign,
   Command,
+  Plus,
+  History,
+  Square,
+  AlertTriangle,
 } from 'lucide-react'
 import type { AiMessage, AiProviderId, AiConfigResult } from '../types/electron.d.ts'
 import {
@@ -460,8 +464,8 @@ const MessageBubble: React.FC<{
       <div
         className={`px-3.5 py-2.5 rounded-xl text-xs leading-relaxed max-w-[95%] code-selectable whitespace-pre-wrap break-words ${
           isUser
-            ? 'bg-gradient-to-r from-violet-700 to-indigo-700 text-white shadow-md shadow-violet-700/20'
-            : 'bg-[#151722] border border-[#242738] text-slate-200'
+            ? 'bg-[#252526] border border-[#333333] text-white'
+            : 'bg-[#252526] border border-[#333333] text-[#CCCCCC]'
         }`}
       >
         {renderContent()}
@@ -484,9 +488,26 @@ export const AiPanel: React.FC<AiPanelProps> = ({
   onOpenCodeExplain,
   onOpenModelSettings,
 }) => {
+  interface ChatSession {
+    id: string
+    title: string
+    messages: AiMessage[]
+    timestamp: number
+  }
+
   const [view, setView] = useState<PanelView>('chat')
   const [config, setConfig] = useState<AiConfigResult | null>(null)
   const [selectedModel, setSelectedModel] = useState('claude-3-7-sonnet')
+  const [sessions, setSessions] = useState<ChatSession[]>([
+    {
+      id: 'session-1',
+      title: 'Refactor generatePatchStream',
+      messages: SAMPLE_INITIAL_MESSAGES,
+      timestamp: Date.now() - 1000 * 60 * 10,
+    },
+  ])
+  const [activeSessionId, setActiveSessionId] = useState('session-1')
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false)
   const [messages, setMessages] = useState<AiMessage[]>(SAMPLE_INITIAL_MESSAGES)
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'cancelled'>('idle')
@@ -498,6 +519,7 @@ export const AiPanel: React.FC<AiPanelProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const generationTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (window.ajsonAPI) {
@@ -508,6 +530,58 @@ export const AiPanel: React.FC<AiPanelProps> = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, status])
+
+  // Sync messages back to active session
+  useEffect(() => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === activeSessionId ? { ...s, messages } : s))
+    )
+  }, [messages, activeSessionId])
+
+  // Map selected model to provider
+  const currentProviderId: AiProviderId = selectedModel.includes('gpt')
+    ? 'openai'
+    : selectedModel.includes('gemini')
+    ? 'google'
+    : 'anthropic'
+
+  const isConfigured = config ? config[currentProviderId]?.configured : false
+
+  const handleNewChat = () => {
+    const newId = `session-${Date.now()}`
+    const newSession: ChatSession = {
+      id: newId,
+      title: 'New Conversation',
+      messages: [],
+      timestamp: Date.now(),
+    }
+    setSessions((prev) => [newSession, ...prev])
+    setActiveSessionId(newId)
+    setMessages([])
+    setStatus('idle')
+    setErrorMsg(null)
+  }
+
+  const handleSelectSession = (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId)
+    if (session) {
+      setActiveSessionId(sessionId)
+      setMessages(session.messages)
+      setShowHistoryDropdown(false)
+      setStatus('idle')
+      setErrorMsg(null)
+    }
+  }
+
+  const handleStopGenerating = () => {
+    if (status === 'loading') {
+      if (generationTimerRef.current) {
+        clearTimeout(generationTimerRef.current)
+        generationTimerRef.current = null
+      }
+      setStatus('cancelled')
+    }
+  }
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
@@ -532,7 +606,7 @@ export const AiPanel: React.FC<AiPanelProps> = ({
       ? ` referencing ${activeFilePath.split('/').pop()} (${activeFileLanguage || 'plaintext'}, ${activeFileContent?.length || 0} chars)`
       : ''
 
-    setTimeout(() => {
+    generationTimerRef.current = setTimeout(() => {
       const assistantMsg: AiMessage = {
         id: generateMessageId(),
         role: 'assistant',
@@ -588,33 +662,62 @@ All AST constraints pass with zero regression.`,
   }
 
   return (
-    <div className="w-full h-full bg-[#12141a] flex flex-col select-none text-xs z-30 overflow-hidden">
+    <div className="w-full h-full bg-[#181818] flex flex-col select-none text-xs z-30 overflow-hidden">
       {/* Top Header Bar */}
-      <div className="h-10 px-3 border-b border-[#20222b] flex items-center justify-between bg-[#151720] shrink-0">
-        {/* Model Selector Pill */}
-        <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 rounded-lg bg-violet-950/70 border border-violet-500/50 text-violet-300 flex items-center justify-center">
-            <Sparkles className="w-3 h-3" />
-          </div>
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="bg-[#181a24] border border-[#262838] hover:border-violet-500/50 text-slate-200 text-xs px-2.5 py-1 rounded-lg focus:outline-none font-sans font-medium cursor-pointer"
-          >
-            <option value="claude-3-7-sonnet">Claude 3.7 Sonnet (Thinking)</option>
-            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-            <option value="gpt-4o">GPT-4o (Reasoning)</option>
-            <option value="deepseek-r1">DeepSeek R1</option>
-            <option value="gemini-2-flash">Gemini 2.0 Flash</option>
-          </select>
+      <div className="h-9 px-3 border-b border-[#333333] flex items-center justify-between bg-[#181818] shrink-0 text-[#CCCCCC]">
+        <div className="flex items-center space-x-2 truncate">
+          <span className="font-medium text-[12px] text-white truncate">
+            {sessions.find((s) => s.id === activeSessionId)?.title || 'Run The Project'}
+          </span>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center space-x-1">
           <button
+            onClick={handleNewChat}
+            title="Start New Chat"
+            className="p-1 text-[#9DA3AE] hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
+              title="Conversation History"
+              className={`p-1 rounded transition-colors ${
+                showHistoryDropdown ? 'bg-violet-950/60 text-violet-300' : 'text-slate-400 hover:text-slate-100 hover:bg-[#1c1d28]'
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+            </button>
+
+            {showHistoryDropdown && (
+              <div className="absolute right-0 top-full mt-1 w-56 bg-[#14151e] border border-[#252837] rounded-lg shadow-2xl p-1 z-50 text-xs font-mono space-y-0.5">
+                <div className="text-[10px] text-slate-500 uppercase px-2 py-1 font-sans font-semibold">
+                  Past Conversations
+                </div>
+                {sessions.map((sess) => (
+                  <button
+                    key={sess.id}
+                    onClick={() => handleSelectSession(sess.id)}
+                    className={`w-full text-left px-2 py-1.5 rounded truncate transition-colors ${
+                      sess.id === activeSessionId
+                        ? 'bg-violet-950/50 text-violet-200'
+                        : 'text-slate-300 hover:bg-[#1c1e2a]'
+                    }`}
+                  >
+                    {sess.title}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
             onClick={() => setMessages([])}
-            title="Clear Chat History"
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-[#1f2230] rounded-lg transition-colors"
+            title="Clear Chat Messages"
+            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-[#1c1d28] rounded transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -628,7 +731,7 @@ All AST constraints pass with zero regression.`,
               }
             }}
             title="Configure AI Provider & Keys"
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-[#1f2230] rounded-lg transition-colors"
+            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-[#1c1d28] rounded transition-colors"
           >
             <Settings className="w-3.5 h-3.5" />
           </button>
@@ -636,7 +739,7 @@ All AST constraints pass with zero regression.`,
           <button
             onClick={onClose}
             title="Close AI Panel"
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-[#1f2230] rounded-lg transition-colors"
+            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-[#1c1d28] rounded transition-colors"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -644,19 +747,19 @@ All AST constraints pass with zero regression.`,
       </div>
 
       {/* Context Attachments Pill Bar */}
-      <div className="px-3 py-1.5 bg-[#14151e] border-b border-[#20222b] flex items-center space-x-1.5 overflow-x-auto shrink-0">
-        <span className="text-[10px] text-slate-500 uppercase font-mono font-semibold">
+      <div className="px-3 py-1.5 bg-[#181818] border-b border-[#333333] flex items-center space-x-1.5 overflow-x-auto shrink-0">
+        <span className="text-[10px] text-[#858585] uppercase font-mono font-semibold">
           Context:
         </span>
         {attachedContext.map((ctx) => (
           <span
             key={ctx}
-            className="inline-flex items-center space-x-1 text-[10.5px] px-2 py-0.5 rounded-full bg-violet-950/40 text-violet-300 border border-violet-800/40 font-mono shrink-0"
+            className="inline-flex items-center space-x-1 text-[10.5px] px-2 py-0.5 rounded-sm bg-[#252526] text-[#CCCCCC] border border-[#333333] font-mono shrink-0"
           >
             <span>{ctx}</span>
             <button
               onClick={() => removeContext(ctx)}
-              className="hover:text-rose-400 transition-colors ml-0.5"
+              className="hover:text-[#F14C4C] transition-colors ml-0.5"
             >
               ×
             </button>
@@ -666,7 +769,7 @@ All AST constraints pass with zero regression.`,
           <button
             type="button"
             onClick={() => setAttachedContext((prev) => [...prev, `@${activeFilePath.split('/').pop()}`])}
-            className="text-[10.5px] px-2 py-0.5 rounded-full bg-violet-950/40 text-violet-300 hover:bg-violet-900/50 border border-violet-800/40 transition-colors font-mono shrink-0"
+            className="text-[10.5px] px-2 py-0.5 rounded-sm bg-[#252526] text-[#CCCCCC] hover:text-white border border-[#333333] transition-colors font-mono shrink-0"
             title={`Attach current file (${activeFilePath})`}
           >
             + @{activeFilePath.split('/').pop()}
@@ -681,7 +784,7 @@ All AST constraints pass with zero regression.`,
                 `@sel:${editorSelection.startLine ?? 1}-${editorSelection.endLine ?? 1}`,
               ])
             }
-            className="text-[10.5px] px-2 py-0.5 rounded-full bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 border border-amber-800/40 transition-colors font-mono shrink-0"
+            className="text-[10.5px] px-2 py-0.5 rounded-sm bg-[#252526] text-amber-300 hover:text-amber-200 border border-[#333333] transition-colors font-mono shrink-0"
             title="Attach editor selection"
           >
             + @selection
@@ -689,14 +792,41 @@ All AST constraints pass with zero regression.`,
         )}
         <button
           onClick={() => setAttachedContext((prev) => [...prev, '@AstValidator.ts'])}
-          className="text-[10.5px] px-2 py-0.5 rounded-full bg-[#181a24] text-slate-400 hover:text-slate-200 border border-[#272a3b] transition-colors shrink-0"
+          className="text-[10.5px] px-2 py-0.5 rounded-sm bg-[#252526] text-[#9DA3AE] hover:text-white border border-[#333333] transition-colors shrink-0"
         >
           + Add (@)
         </button>
       </div>
 
       {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3.5 bg-[#101116]">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3.5 bg-[#181818]">
+        {messages.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-center p-4 space-y-3 text-slate-500">
+            <div className="w-10 h-10 rounded-xl bg-violet-950/50 border border-violet-800/40 flex items-center justify-center text-violet-400">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-slate-200 font-semibold text-xs">Ajson Coding Assistant</div>
+              <div className="text-[11px] text-slate-500">Ask a question or prompt changes to your active code</div>
+            </div>
+            <div className="w-full space-y-1.5 pt-2 text-left">
+              {[
+                'Refactor active selection with speculative buffering',
+                'Explain generatePatchStream() AST validation logic',
+                'Generate test cases for StreamingDiffEngine',
+              ].map((starter) => (
+                <button
+                  key={starter}
+                  onClick={() => setInput(starter)}
+                  className="w-full text-left p-2 rounded-lg bg-[#141620] hover:bg-[#1a1d2c] border border-[#232637] text-[11px] text-slate-300 transition-colors"
+                >
+                  {starter}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {messages.map((msg) => (
           <MessageBubble
             key={msg.id}
@@ -708,15 +838,37 @@ All AST constraints pass with zero regression.`,
         ))}
 
         {status === 'loading' && (
-          <div className="flex items-center space-x-2 p-3 rounded-xl bg-[#151722] border border-violet-500/40 text-violet-300">
-            <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-            <span className="text-xs font-mono">Claude 3.7 Sonnet is reasoning & generating patch...</span>
+          <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#141620] border border-violet-500/40 text-violet-300">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+              <span className="text-xs font-mono">Generating response...</span>
+            </div>
+            <button
+              onClick={handleStopGenerating}
+              className="px-2 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/40 flex items-center space-x-1 text-[11px] transition-colors"
+            >
+              <Square className="w-3 h-3 fill-rose-300" />
+              <span>Stop</span>
+            </button>
           </div>
         )}
 
         {status === 'error' && errorMsg && (
-          <div className="flex items-center space-x-2 p-3 rounded-xl bg-rose-950/20 border border-rose-800/40 text-rose-300 text-xs">
-            <span>{errorMsg}</span>
+          <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-800/50 text-rose-300 text-xs space-y-2">
+            <div className="flex items-center space-x-1.5 font-medium">
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
+              <span>AI Provider Notice</span>
+            </div>
+            <p className="text-[11.5px] leading-relaxed text-rose-200/90">{errorMsg}</p>
+            {onOpenModelSettings && (
+              <button
+                type="button"
+                onClick={onOpenModelSettings}
+                className="px-2.5 py-1 rounded bg-rose-900/40 hover:bg-rose-900/60 text-white text-xs font-medium border border-rose-700/50 transition-colors"
+              >
+                Configure Provider Key
+              </button>
+            )}
           </div>
         )}
 
@@ -724,8 +876,8 @@ All AST constraints pass with zero regression.`,
       </div>
 
       {/* Prompt Input Form */}
-      <form onSubmit={handleSend} className="p-3 bg-[#13151e] border-t border-[#20222b] shrink-0">
-        <div className="bg-[#171924] border border-[#26293a] focus-within:border-violet-500/70 rounded-xl p-2.5 transition-all shadow-inner space-y-2">
+      <form onSubmit={handleSend} className="p-3 bg-[#181818] border-t border-[#333333] shrink-0">
+        <div className="bg-[#1E1E1E] border border-[#333333] focus-within:border-[#007ACC] rounded-xl p-2.5 transition-colors space-y-2">
           <textarea
             ref={textareaRef}
             rows={3}
@@ -737,43 +889,45 @@ All AST constraints pass with zero regression.`,
                 handleSend(e)
               }
             }}
-            placeholder="Ask Ajson Agent (e.g. 'Refactor speculative buffer', 'Generate tests')... ⌘Enter to send"
-            className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-xs outline-none resize-none font-sans leading-relaxed"
+            placeholder="Ask anything, @ to mention, / for actions"
+            className="w-full bg-transparent text-[#CCCCCC] placeholder-[#6E7681] text-xs outline-none resize-none font-sans leading-relaxed"
           />
 
-          <div className="flex items-center justify-between pt-1 border-t border-[#212433] text-[11px] text-slate-400">
+          <div className="flex items-center justify-between pt-1 text-[11px] text-[#9DA3AE]">
             <div className="flex items-center space-x-2">
               <button
                 type="button"
                 onClick={() => setInput((p) => p + ' @')}
-                className="hover:text-violet-300 flex items-center space-x-1"
-                title="Attach context file"
+                className="hover:text-white p-1 rounded-sm hover:bg-[#252526] transition-colors"
+                title="Add context"
               >
-                <AtSign className="w-3.5 h-3.5" />
-                <span>Context</span>
+                <Plus className="w-3.5 h-3.5" />
               </button>
-              <button
-                type="button"
-                onClick={() => setInput('/refactor ')}
-                className="hover:text-violet-300 flex items-center space-x-1"
-                title="Slash commands"
-              >
-                <Command className="w-3.5 h-3.5" />
-                <span>Commands</span>
-              </button>
+
+              {/* Model Picker Pill */}
+              <div className="relative flex items-center">
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="bg-[#252526] hover:bg-[#2A2D2E] border border-[#333333] hover:border-[#007ACC] text-[#CCCCCC] text-[10.5px] pl-2 pr-5 py-0.5 rounded-md focus:outline-none font-sans cursor-pointer appearance-none transition-colors"
+                >
+                  <option value="gemini-3.8-flash">Gemini 3.8 Flash High</option>
+                  <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+                  <option value="gpt-4o">GPT-4o</option>
+                  <option value="deepseek-r1">DeepSeek R1</option>
+                </select>
+                <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[#9DA3AE] pointer-events-none" />
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] text-slate-500 font-mono">1,420 / 200k tokens</span>
-              <button
-                type="submit"
-                disabled={!input.trim() || status === 'loading'}
-                className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium shadow-md shadow-violet-600/30 transition-all flex items-center space-x-1"
-              >
-                <span>Send</span>
-                <Send className="w-3 h-3" />
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={!input.trim() || status === 'loading'}
+              className="w-7 h-7 rounded-full bg-[#37373D] hover:bg-[#007ACC] disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors"
+              title="Send message"
+            >
+              <Send className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </form>

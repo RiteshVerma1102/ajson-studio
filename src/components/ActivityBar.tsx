@@ -4,6 +4,7 @@ import {
   Search,
   GitBranch,
   Boxes,
+  FileJson,
   Sparkles,
   Settings,
   User,
@@ -31,16 +32,17 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
     icon: React.ReactNode
     badge?: number | string
   }> = [
-    { id: 'explorer', label: 'Explorer (Ctrl+Shift+E)', icon: <Files className="w-4 h-4" /> },
-    { id: 'search', label: 'Search (Ctrl+Shift+F)', icon: <Search className="w-4 h-4" /> },
-    { id: 'git', label: 'Source Control (Ctrl+Shift+G)', icon: <GitBranch className="w-4 h-4" />, badge: 2 },
-    { id: 'extensions', label: 'Extensions (Ctrl+Shift+X)', icon: <Boxes className="w-4 h-4" /> },
+    { id: 'explorer', label: 'Explorer (Ctrl+Shift+E)', icon: <Files className="w-5 h-5" /> },
+    { id: 'search', label: 'Search (Ctrl+Shift+F)', icon: <Search className="w-5 h-5" /> },
+    { id: 'git', label: 'Source Control (Ctrl+Shift+G)', icon: <GitBranch className="w-5 h-5" />, badge: 19 },
+    { id: 'jsontools', label: 'JSON Tools & Suite', icon: <FileJson className="w-5 h-5" /> },
+    { id: 'extensions', label: 'Extensions (Ctrl+Shift+X)', icon: <Boxes className="w-5 h-5" /> },
   ]
 
   return (
-    <aside className="w-12 bg-[#0c0d11] border-r border-[#20222b] flex flex-col justify-between items-center py-2.5 select-none z-40">
-      {/* Top primary actions */}
-      <div className="flex flex-col items-center space-y-1 w-full">
+    <aside className="w-12 bg-[#181818] border-r border-[#333333] flex flex-col justify-between items-center py-1 select-none z-40 shrink-0">
+      {/* Top primary action icons */}
+      <div className="flex flex-col items-center w-full">
         {primaryActivities.map((item) => {
           const isActive = activeView === item.id
           return (
@@ -48,18 +50,15 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
               key={item.id}
               onClick={() => onSelectView(item.id)}
               title={item.label}
-              className={`relative w-9 h-9 flex items-center justify-center rounded-lg transition-all group ${
+              className={`relative w-12 h-11 flex items-center justify-center transition-colors group ${
                 isActive
-                  ? 'text-violet-300 bg-violet-950/40 border border-violet-800/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#161820]'
+                  ? 'text-white border-l-2 border-[#007ACC]'
+                  : 'text-[#858585] hover:text-[#D4D4D4] border-l-2 border-transparent'
               }`}
             >
-              {isActive && (
-                <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-violet-400 rounded-r" />
-              )}
               {item.icon}
               {item.badge && (
-                <span className="absolute top-1 right-1 px-1 min-w-[14px] h-3.5 rounded-full bg-violet-600 text-white text-[9px] font-mono font-bold flex items-center justify-center shadow-sm">
+                <span className="absolute top-1.5 right-1.5 px-1 min-w-[14px] h-3.5 rounded-full bg-[#007ACC] text-white text-[9px] font-mono font-bold flex items-center justify-center">
                   {item.badge}
                 </span>
               )}
@@ -67,39 +66,35 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
           )
         })}
 
-        {/* AI Copilot shortcut in activity bar */}
-        <div className="w-5 h-px bg-[#1f212c] my-2" />
-
+        {/* AI Assistant shortcut */}
         <button
           onClick={onToggleAiPanel}
-          title="Ajson AI Agent (Ctrl+L)"
-          className={`relative w-9 h-9 flex items-center justify-center rounded-lg transition-all ${
+          title="Toggle AI Assistant (Ctrl+L)"
+          className={`relative w-12 h-11 flex items-center justify-center transition-colors mt-1 ${
             aiPanelOpen
-              ? 'text-violet-300 bg-violet-950/60 border border-violet-500/60 shadow-md shadow-violet-600/30'
-              : 'text-violet-400/80 hover:text-violet-200 hover:bg-[#1a1b28]'
+              ? 'text-[#007ACC] border-l-2 border-[#007ACC]'
+              : 'text-[#858585] hover:text-[#D4D4D4] border-l-2 border-transparent'
           }`}
         >
-          <Sparkles className="w-4 h-4" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-400 animate-ping opacity-75" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-500" />
+          <Sparkles className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Bottom actions: Account & Settings */}
-      <div className="flex flex-col items-center space-y-1.5 w-full">
+      {/* Bottom actions: User Profile & Settings */}
+      <div className="flex flex-col items-center w-full pb-1">
         <button
-          title="Developer Profile"
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#161820] transition-colors"
+          title="Accounts"
+          className="w-12 h-10 flex items-center justify-center text-[#858585] hover:text-[#D4D4D4] transition-colors"
         >
-          <User className="w-4 h-4" />
+          <User className="w-5 h-5" />
         </button>
 
         <button
           onClick={onOpenSettings}
           title="Settings (Ctrl+,)"
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#161820] transition-colors"
+          className="w-12 h-10 flex items-center justify-center text-[#858585] hover:text-[#D4D4D4] transition-colors"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-5 h-5" />
         </button>
       </div>
     </aside>

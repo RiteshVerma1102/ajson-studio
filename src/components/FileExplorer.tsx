@@ -598,8 +598,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
                   style={{ paddingLeft }}
                   className={`flex items-center justify-between py-1 px-2 cursor-pointer select-none text-[12px] transition-colors ${
                     isSelected
-                      ? 'bg-[#182033] text-cyan-300 font-medium'
-                      : 'text-slate-400 hover:bg-[#131724] hover:text-slate-200'
+                      ? 'bg-[#37373D] text-white font-medium'
+                      : 'text-[#CCCCCC] hover:bg-[#2A2D2E] hover:text-white'
                   }`}
                 >
                   <div className="flex items-center space-x-1.5 truncate">
@@ -731,8 +731,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               style={{ paddingLeft }}
               className={`group/file flex items-center justify-between py-1 px-2 cursor-pointer select-none text-[12px] transition-colors ${
                 isSelected
-                  ? 'bg-[#182033] text-cyan-300 font-medium border-l-2 border-cyan-400'
-                  : 'text-slate-400 hover:bg-[#131724] hover:text-slate-200'
+                  ? 'bg-[#37373D] text-white font-medium border-l-2 border-[#007ACC]'
+                  : 'text-[#CCCCCC] hover:bg-[#2A2D2E] hover:text-white'
               }`}
             >
               <div className="flex items-center space-x-2 truncate">
@@ -775,40 +775,40 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       ref={treeContainerRef}
       tabIndex={0}
       onKeyDown={handleTreeKeyDown}
-      className="flex flex-col h-full select-none text-xs outline-none focus:ring-1 focus:ring-cyan-500/30"
+      className="flex flex-col h-full select-none text-xs outline-none bg-[#181818]"
     >
       {/* Explorer Action Toolbar */}
-      <div className="h-8 px-2.5 bg-[#0e121a] border-b border-[#1b2030] flex items-center justify-between text-slate-400">
+      <div className="h-8 px-2.5 bg-[#181818] border-b border-[#333333] flex items-center justify-between text-[#CCCCCC]">
         <span
-          className="font-semibold uppercase tracking-wider text-[10.5px] text-slate-300 truncate max-w-[110px]"
+          className="font-semibold uppercase tracking-wider text-[11px] text-[#BBBBBB] truncate max-w-[120px]"
           title={projectRoot ? `${projectRoot.name} (${projectRoot.path})` : 'No Project Open'}
         >
           {projectRoot ? projectRoot.name : 'No Project'}
         </span>
-        <div className="flex items-center space-x-0.5 text-slate-500">
+        <div className="flex items-center space-x-0.5 text-[#9DA3AE]">
           {projectRoot && (
             <>
               <button
                 onClick={() => startCreateFile()}
                 title="New File in Project Root"
-                className="p-1 hover:text-cyan-400 hover:bg-[#181d2c] rounded transition-colors"
+                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               >
                 <FilePlus className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => startCreateFolder()}
                 title="New Folder in Project Root"
-                className="p-1 hover:text-cyan-400 hover:bg-[#181d2c] rounded transition-colors"
+                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               >
                 <FolderPlus className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setIsFilterVisible((prev) => !prev)}
                 title="Filter Explorer Files"
-                className={`p-1 rounded transition-colors ${
+                className={`p-1 rounded-sm transition-colors ${
                   isFilterVisible || filterQuery
-                    ? 'text-cyan-400 bg-[#181d2c]'
-                    : 'hover:text-cyan-400 hover:bg-[#181d2c]'
+                    ? 'text-white bg-[#2A2D2E]'
+                    : 'hover:text-white hover:bg-[#2A2D2E]'
                 }`}
               >
                 <Search className="w-3.5 h-3.5" />
@@ -816,16 +816,16 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               <button
                 onClick={onRefresh}
                 title="Refresh File Tree"
-                className="p-1 hover:text-slate-200 hover:bg-[#181d2c] rounded transition-colors"
+                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 ${isLoadingTree ? 'animate-spin text-cyan-400' : ''}`}
+                  className={`w-3.5 h-3.5 ${isLoadingTree ? 'animate-spin text-[#007ACC]' : ''}`}
                 />
               </button>
               <button
                 onClick={handleCollapseAll}
                 title="Collapse All Folders"
-                className="p-1 hover:text-slate-200 hover:bg-[#181d2c] rounded transition-colors"
+                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               >
                 <FolderTree className="w-3.5 h-3.5" />
               </button>
@@ -834,7 +834,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           <button
             onClick={onOpenFolderDialog}
             title="Open Another Project Folder"
-            className="p-1 hover:text-cyan-400 hover:bg-[#181d2c] rounded transition-colors"
+            className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
           >
             <FolderOpen className="w-3.5 h-3.5" />
           </button>
@@ -843,7 +843,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
       {/* Explorer Filename Filtering Input Bar */}
       {projectRoot && isFilterVisible && (
-        <div className="p-1.5 bg-[#0b0e14] border-b border-[#1b2030] flex items-center space-x-1.5">
+        <div className="p-1.5 bg-[#181818] border-b border-[#333333] flex items-center space-x-1.5">
           <div className="relative flex-1">
             <input
               ref={filterInputRef}
@@ -861,13 +861,13 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
                   }
                 }
               }}
-              className="w-full bg-[#121622] text-slate-200 placeholder-slate-500 text-[11px] pl-6 pr-6 py-1 rounded border border-[#20273b] focus:border-cyan-500 outline-none"
+              className="w-full bg-[#252526] text-[#CCCCCC] placeholder-[#6E7681] text-[11px] pl-6 pr-6 py-1 rounded-sm border border-[#333333] focus:border-[#007ACC] outline-none"
             />
-            <Search className="w-3 h-3 text-slate-500 absolute left-2 top-2 pointer-events-none" />
+            <Search className="w-3 h-3 text-[#9DA3AE] absolute left-2 top-2 pointer-events-none" />
             {filterQuery && (
               <button
                 onClick={() => setFilterQuery('')}
-                className="absolute right-1.5 top-1.5 text-slate-500 hover:text-slate-300"
+                className="absolute right-1.5 top-1.5 text-[#9DA3AE] hover:text-white"
                 title="Clear filter (Esc)"
               >
                 <X className="w-3 h-3" />
@@ -875,7 +875,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             )}
           </div>
           {filterQuery && (
-            <span className="text-[10px] text-cyan-400 px-1 font-mono">
+            <span className="text-[10px] text-[#007ACC] px-1 font-mono">
               {matchCount}
             </span>
           )}

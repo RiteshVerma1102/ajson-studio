@@ -8,7 +8,6 @@ import {
   Sparkles,
   Layers,
   Play,
-  Settings,
   Search,
   GitCompare,
   BookOpen,
@@ -87,33 +86,25 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="window-drag-region h-10 bg-[#121318] border-b border-[#21232d] flex items-center justify-between px-3 select-none z-50 text-xs">
-      {/* Left: Branding & App Identity */}
-      <div className="window-no-drag flex items-center space-x-3">
-        <div className="flex items-center space-x-2 pl-0.5">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-violet-600 via-indigo-600 to-violet-400 flex items-center justify-center shadow-md shadow-violet-600/30 border border-violet-400/30">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
+  return (
+    <header className="window-drag-region h-9 bg-[#181818] border-b border-[#333333] flex items-center justify-between px-2.5 select-none z-50 text-xs text-[#CCCCCC]">
+      {/* Left: App Identity & Main Menus */}
+      <div className="window-no-drag flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 pr-2">
+          <div className="w-4 h-4 rounded bg-[#007ACC] flex items-center justify-center text-white font-bold text-[10px]">
+            A
           </div>
-          <span className="font-semibold tracking-wider text-slate-100 text-[12px] font-sans">
-            Ajson Studio
-          </span>
-          <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-violet-950/60 text-violet-300 border border-violet-800/50 font-mono font-medium">
-            AI-Native
+          <span className="font-semibold text-[11.5px] text-[#E6E6E6] hidden sm:inline">
+            Ajson
           </span>
         </div>
 
-        {/* Project Badge */}
-        <div className="hidden sm:flex items-center space-x-1.5 px-2 py-0.5 rounded bg-[#181a22] border border-[#262835] text-[11px] font-mono text-slate-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-slate-200 font-medium">{projectName}</span>
-        </div>
-
-        {/* Menu Bar Items */}
-        <nav className="hidden lg:flex items-center space-x-0.5 text-slate-400 text-[11px]">
-          {['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'AI', 'Help'].map((item) => (
+        {/* Standard IDE Menu Bar */}
+        <nav className="flex items-center space-x-0.5 text-[#CCCCCC] text-[11.5px]">
+          {['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'].map((item) => (
             <button
               key={item}
-              className="px-2 py-0.5 rounded hover:bg-[#1c1e28] hover:text-slate-200 transition-colors"
+              className="px-2 py-0.5 rounded-sm hover:bg-[#2A2D2E] hover:text-white transition-colors"
             >
               {item}
             </button>
@@ -121,105 +112,62 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
       </div>
 
-      {/* Center: Command Search Bar */}
-      <div className="window-no-drag flex items-center max-w-md w-full mx-4">
+      {/* Center: Window & Document Title */}
+      <div className="window-no-drag flex items-center justify-center flex-1 mx-4 max-w-xl">
         <button
           onClick={onOpenCommandPalette}
-          className="w-full h-7 px-3 bg-[#171821] hover:bg-[#1d1f2b] border border-[#262835] hover:border-violet-500/50 rounded-lg text-slate-400 hover:text-slate-200 text-xs flex items-center justify-between transition-all group shadow-sm"
-          title="Open Command Palette (Ctrl+K / ⌘K)"
+          className="px-3 py-1 hover:bg-[#252526] rounded-md transition-colors text-[11.5px] text-[#9DA3AE] hover:text-[#CCCCCC] flex items-center space-x-2 truncate border border-transparent hover:border-[#333333]"
+          title="Command Palette & Quick Open (Ctrl+P / ⌘P)"
         >
-          <div className="flex items-center space-x-2 truncate">
-            <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 transition-colors" />
-            <span className="text-[11.5px] truncate">Search files, symbols, commands...</span>
-          </div>
-          <div className="flex items-center space-x-1 shrink-0 font-mono text-[10px] text-slate-400 bg-[#12131a] px-1.5 py-0.5 rounded border border-[#232533]">
-            <span>⌘K</span>
-          </div>
+          <Search className="w-3.5 h-3.5 text-[#9DA3AE]" />
+          <span className="truncate">
+            Ajson — Antigravity IDE {activeFileName ? `— ${activeFileName}` : `— ${projectName}`}
+          </span>
+          <kbd className="text-[10px] bg-[#252526] border border-[#333333] px-1 py-0.2 rounded text-[#9DA3AE] font-mono">
+            ⌘P
+          </kbd>
         </button>
       </div>
 
-      {/* Right: Quick State Access Buttons, Run, Settings, Layout Controls */}
+      {/* Right: Layout Controls, Quick Actions & Window Buttons */}
       <div className="window-no-drag flex items-center space-x-1.5 shrink-0">
-        {/* Direct State View Action Pills */}
-        <div className="flex items-center space-x-1 bg-[#161720] p-0.5 rounded-lg border border-[#242634]">
+        {/* Quick Tools */}
+        <div className="flex items-center space-x-0.5">
+          <button
+            id="header-btn-run"
+            onClick={onRunProject}
+            title="Run Project (F5)"
+            className="p-1 rounded-sm text-[#CCCCCC] hover:bg-[#2A2D2E] hover:text-white transition-colors"
+          >
+            <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400/30" />
+          </button>
+
           <button
             id="header-btn-diff-review"
             onClick={onOpenDiffReview}
-            title="Side-by-Side Diff Review"
-            className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-[#1f212c] text-slate-300 hover:text-emerald-300 text-[11px] transition-colors"
+            title="Review Diff Changes"
+            className="p-1 rounded-sm text-[#CCCCCC] hover:bg-[#2A2D2E] hover:text-white transition-colors"
           >
-            <GitCompare className="w-3 h-3 text-emerald-400" />
-            <span>Diff Review</span>
+            <GitCompare className="w-3.5 h-3.5" />
           </button>
 
           <button
             id="header-btn-ai-codegen"
             onClick={onOpenAiCodeGen}
-            title="Inline AI Code Generation (⌘K)"
-            className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-[#1f212c] text-slate-300 hover:text-violet-300 text-[11px] transition-colors"
+            title="AI Code Generator"
+            className="p-1 rounded-sm text-[#CCCCCC] hover:bg-[#2A2D2E] hover:text-white transition-colors"
           >
-            <Sparkles className="w-3 h-3 text-violet-400" />
-            <span>AI Gen</span>
-          </button>
-
-          <button
-            id="header-btn-code-explain"
-            onClick={onOpenCodeExplain}
-            title="Deep Code Explanation"
-            className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-[#1f212c] text-slate-300 hover:text-indigo-300 text-[11px] transition-colors"
-          >
-            <BookOpen className="w-3 h-3 text-indigo-400" />
-            <span>Explain</span>
-          </button>
-
-          <button
-            id="header-btn-multi-file"
-            onClick={onOpenMultiFileEdits}
-            title="Multi-File Edits (Composer)"
-            className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-[#1f212c] text-slate-300 hover:text-amber-300 text-[11px] transition-colors"
-          >
-            <Layers className="w-3 h-3 text-amber-400" />
-            <span>Multi-File</span>
-          </button>
-
-          <button
-            id="header-btn-model-settings"
-            onClick={onOpenModelSettings}
-            title="Model & Provider Settings"
-            className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-[#1f212c] text-slate-300 hover:text-violet-300 text-[11px] transition-colors"
-          >
-            <Sliders className="w-3 h-3 text-violet-400" />
-            <span>Models</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#007ACC]" />
           </button>
         </div>
 
-        {/* Run Button */}
-        <button
-          id="header-btn-run"
-          onClick={onRunProject}
-          title="Run Active Target (F5)"
-          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-400 border border-emerald-800/50 text-xs font-medium transition-all"
-        >
-          <Play className="w-3 h-3 fill-emerald-400" />
-          <span className="hidden md:inline text-[11px]">Run</span>
-        </button>
-
-        {/* Settings Button */}
-        <button
-          onClick={onOpenModelSettings || onOpenSettings}
-          title="AI & Editor Settings"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#1a1c26] transition-colors border border-transparent hover:border-[#272938]"
-        >
-          <Settings className="w-3.5 h-3.5" />
-        </button>
-
-        {/* Layout action toggles */}
-        <div className="flex items-center space-x-0.5 bg-[#171821] p-0.5 rounded-lg border border-[#242633]">
+        {/* Panel Layout Toggles */}
+        <div className="flex items-center space-x-0.5 border-l border-[#333333] pl-1.5">
           <button
             onClick={onToggleSidebar}
-            title={sidebarOpen ? 'Hide Explorer (Ctrl+B)' : 'Show Explorer (Ctrl+B)'}
-            className={`p-1 rounded transition-colors ${
-              sidebarOpen ? 'bg-violet-950/50 text-violet-300 border border-violet-800/40' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1c1e28]'
+            title={sidebarOpen ? 'Hide Primary Sidebar (⌘B)' : 'Show Primary Sidebar (⌘B)'}
+            className={`p-1 rounded-sm transition-colors ${
+              sidebarOpen ? 'bg-[#37373D] text-white' : 'text-[#9DA3AE] hover:text-white hover:bg-[#2A2D2E]'
             }`}
           >
             <SidebarIcon className="w-3.5 h-3.5" />
@@ -227,9 +175,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onToggleBottomPanel}
-            title={bottomPanelOpen ? 'Hide Terminal / Bottom Dock' : 'Show Terminal / Bottom Dock'}
-            className={`p-1 rounded transition-colors ${
-              bottomPanelOpen ? 'bg-violet-950/50 text-violet-300 border border-violet-800/40' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1c1e28]'
+            title={bottomPanelOpen ? 'Hide Bottom Panel (⌘J)' : 'Show Bottom Panel (⌘J)'}
+            className={`p-1 rounded-sm transition-colors ${
+              bottomPanelOpen ? 'bg-[#37373D] text-white' : 'text-[#9DA3AE] hover:text-white hover:bg-[#2A2D2E]'
             }`}
           >
             <PanelBottom className="w-3.5 h-3.5" />
@@ -237,35 +185,40 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onToggleAiPanel}
-            title={aiPanelOpen ? 'Hide Ajson AI Panel' : 'Show Ajson AI Panel'}
-            className={`p-1 rounded transition-colors ${
-              aiPanelOpen ? 'bg-violet-950/60 text-violet-300 border border-violet-700/60 shadow-sm shadow-violet-600/20' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1c1e28]'
+            title={aiPanelOpen ? 'Hide AI Assistant (⌘L)' : 'Show AI Assistant (⌘L)'}
+            className={`p-1 rounded-sm transition-colors ${
+              aiPanelOpen ? 'bg-[#37373D] text-[#007ACC]' : 'text-[#9DA3AE] hover:text-white hover:bg-[#2A2D2E]'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Window controls (Minimize, Maximize, Close) */}
+        {/* User Profile Avatar */}
+        <div className="w-5 h-5 rounded-full bg-[#37373D] border border-[#3E3E42] text-[10px] font-semibold text-white flex items-center justify-center ml-1">
+          R
+        </div>
+
+        {/* Electron Window Controls */}
         {isElectron && (
-          <div className="flex items-center space-x-0.5 pl-1">
+          <div className="flex items-center space-x-0.5 border-l border-[#333333] pl-1 ml-1">
             <button
               onClick={handleMinimize}
-              className="w-7 h-6 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-[#1e202b] rounded transition-colors"
+              className="w-7 h-6 flex items-center justify-center text-[#9DA3AE] hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               title="Minimize"
             >
               <Minus className="w-3 h-3" />
             </button>
             <button
               onClick={handleMaximize}
-              className="w-7 h-6 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-[#1e202b] rounded transition-colors"
+              className="w-7 h-6 flex items-center justify-center text-[#9DA3AE] hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               title={isMaximized ? 'Restore' : 'Maximize'}
             >
               <Square className="w-2.5 h-2.5" />
             </button>
             <button
               onClick={handleClose}
-              className="w-7 h-6 flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-600 rounded transition-colors"
+              className="w-7 h-6 flex items-center justify-center text-[#9DA3AE] hover:text-white hover:bg-[#E81123] rounded-sm transition-colors"
               title="Close"
             >
               <X className="w-3.5 h-3.5" />

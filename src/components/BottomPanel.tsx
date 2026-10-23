@@ -101,18 +101,18 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
   return (
     <div
       style={{ height: `${height}px` }}
-      className="bg-[#101116] border-t border-[#20222b] flex flex-col select-none text-xs shrink-0 overflow-hidden"
+      className="bg-[#181818] border-t border-[#333333] flex flex-col select-none text-xs shrink-0 overflow-hidden"
     >
       {/* Panel Tab Header Bar */}
-      <div className="h-8 px-2 bg-[#13141a] border-b border-[#20222b] flex items-center justify-between text-slate-400">
+      <div className="h-8 px-2 bg-[#181818] border-b border-[#333333] flex items-center justify-between text-[#CCCCCC]">
         <div className="flex items-center space-x-1 h-full">
           {/* Terminal Tab */}
           <button
             onClick={() => onSelectTab('terminal')}
             className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
               activeTab === 'terminal'
-                ? 'border-violet-400 text-violet-200 font-medium bg-[#161722]'
-                : 'border-transparent hover:text-slate-200 hover:bg-[#181922]'
+                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
+                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
             }`}
           >
             <TerminalIcon className="w-3.5 h-3.5" />
@@ -124,13 +124,13 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
             onClick={() => onSelectTab('problems')}
             className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
               activeTab === 'problems'
-                ? 'border-violet-400 text-violet-200 font-medium bg-[#161722]'
-                : 'border-transparent hover:text-slate-200 hover:bg-[#181922]'
+                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
+                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
             }`}
           >
             <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
             <span>Problems</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-950/60 text-amber-300 border border-amber-800/40 font-mono">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#252526] text-amber-300 border border-[#333333] font-mono">
               1
             </span>
           </button>
@@ -140,8 +140,8 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
             onClick={() => onSelectTab('output')}
             className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
               activeTab === 'output'
-                ? 'border-violet-400 text-violet-200 font-medium bg-[#161722]'
-                : 'border-transparent hover:text-slate-200 hover:bg-[#181922]'
+                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
+                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
             }`}
           >
             <FileTerminal className="w-3.5 h-3.5" />
@@ -153,32 +153,32 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
             onClick={() => onSelectTab('tests')}
             className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
               activeTab === 'tests'
-                ? 'border-violet-400 text-violet-200 font-medium bg-[#161722]'
-                : 'border-transparent hover:text-slate-200 hover:bg-[#181922]'
+                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
+                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Tests</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 font-mono">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#252526] text-emerald-300 border border-[#333333] font-mono">
               96 passing
             </span>
           </button>
         </div>
 
         {/* Panel Action Controls */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 text-[#9DA3AE]">
           {activeTab === 'terminal' && (
             <>
               <button
                 onClick={() => setTerminalHistory([])}
                 title="Clear Terminal"
-                className="p-1 hover:text-slate-200 hover:bg-[#1d1f2b] rounded transition-colors"
+                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
               <button
                 title="Split Terminal"
-                className="p-1 hover:text-slate-200 hover:bg-[#1d1f2b] rounded transition-colors"
+                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
               >
                 <Split className="w-3.5 h-3.5" />
               </button>
@@ -188,7 +188,7 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
           <button
             onClick={onClose}
             title="Close Panel"
-            className="p-1 hover:text-slate-200 hover:bg-[#1d1f2b] rounded transition-colors"
+            className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -196,37 +196,37 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
       </div>
 
       {/* Tab Content Body */}
-      <div className="flex-1 overflow-hidden p-2 font-mono text-[11.5px]">
+      <div className="flex-1 overflow-hidden p-2 font-mono text-[11.5px] bg-[#1E1E1E]">
         {/* Terminal Content */}
         {activeTab === 'terminal' && (
           <div className="h-full flex flex-col overflow-y-auto px-2 space-y-1">
             {terminalHistory.map((entry, idx) => (
               <div key={idx} className="leading-relaxed">
                 {entry.type === 'command' && (
-                  <div className="flex items-center space-x-2 text-violet-300">
-                    <span className="text-violet-400 font-semibold select-none">
+                  <div className="flex items-center space-x-2 text-[#CCCCCC]">
+                    <span className="text-[#007ACC] font-semibold select-none">
                       ajson-studio:~/quantum-mesh (main) $
                     </span>
-                    <span className="text-slate-100">{entry.text}</span>
+                    <span className="text-white">{entry.text}</span>
                   </div>
                 )}
                 {entry.type === 'system' && (
-                  <div className="text-slate-500">{entry.text}</div>
+                  <div className="text-[#858585]">{entry.text}</div>
                 )}
                 {entry.type === 'output' && (
-                  <div className="text-slate-300 whitespace-pre-wrap pl-2 border-l border-[#222432]">
+                  <div className="text-[#CCCCCC] whitespace-pre-wrap pl-2 border-l border-[#333333]">
                     {entry.text}
                   </div>
                 )}
                 {entry.type === 'error' && (
-                  <div className="text-rose-400 whitespace-pre-wrap">{entry.text}</div>
+                  <div className="text-[#F14C4C] whitespace-pre-wrap">{entry.text}</div>
                 )}
               </div>
             ))}
 
             {/* Input Prompt */}
             <form onSubmit={handleCommandSubmit} className="flex items-center space-x-2 pt-1">
-              <span className="text-violet-400 font-semibold select-none">
+              <span className="text-[#007ACC] font-semibold select-none">
                 ajson-studio:~/quantum-mesh (main) $
               </span>
               <input
@@ -234,7 +234,7 @@ export const BottomPanel: React.FC<BottomPanelProps> = ({
                 value={terminalInput}
                 onChange={(e) => setTerminalInput(e.target.value)}
                 placeholder="Type command ('npm test', 'git status', 'help')..."
-                className="flex-1 bg-transparent text-slate-100 outline-none border-none font-mono text-[11.5px]"
+                className="flex-1 bg-transparent text-[#CCCCCC] outline-none border-none font-mono text-[11.5px]"
                 autoFocus
               />
             </form>

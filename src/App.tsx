@@ -26,7 +26,7 @@ import {
 } from './types/editor'
 import type { RecentProject } from './types/electron'
 import { getLanguageFromPath, isBinaryExtension } from './utils/fileUtils'
-import { FolderOpen, FileCode2, Plus, AlertCircle, CheckCircle2, X } from 'lucide-react'
+import { FolderOpen, FileCode2, Plus, AlertCircle, CheckCircle2, X, Sparkles } from 'lucide-react'
 
 export const App: React.FC = () => {
   // Project Workspace State
@@ -44,6 +44,8 @@ export const App: React.FC = () => {
   // Editor Tabs State
   const [tabs, setTabs] = useState<EditorTab[]>(sampleFiles)
   const [activeTabId, setActiveTabId] = useState<string>('src/ai/AgentCoordinator.ts')
+  const [isSplitView, setIsSplitView] = useState<boolean>(false)
+  const [secondaryTabId, setSecondaryTabId] = useState<string | null>(null)
   const [revealLocation, setRevealLocation] = useState<(EditorLocation & { timestamp?: number }) | null>(null)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false)
   const monacoEditorRef = useRef<MonacoEditorHandle>(null)
@@ -108,6 +110,11 @@ export const App: React.FC = () => {
 
   // Get current active tab
   const activeTab = tabs.find((t) => t.id === activeTabId) || null
+  const secondaryTab = isSplitView
+    ? tabs.find((t) => t.id === secondaryTabId) ||
+      tabs.find((t) => t.id !== activeTabId) ||
+      activeTab
+    : null
 
   // Initial Workspace & Preferences Load
   useEffect(() => {
@@ -500,13 +507,16 @@ export const App: React.FC = () => {
   }
 
   // Update in-memory tab content & accurate unsaved dirty tracking
-  const handleContentChange = (newContent: string) => {
-    if (!activeTab) return
-    const isNowDirty = newContent !== activeTab.originalContent
+  const handleContentChange = (newContent: string, targetTabId?: string) => {
+    const idToUpdate = targetTabId || activeTab?.id
+    if (!idToUpdate) return
+    const targetTab = tabs.find((t) => t.id === idToUpdate)
+    if (!targetTab) return
+    const isNowDirty = newContent !== targetTab.originalContent
 
     setTabs((prev) =>
       prev.map((t) =>
-        t.id === activeTab.id
+        t.id === idToUpdate
           ? {
               ...t,
               content: newContent,
@@ -787,6 +797,10 @@ export const App: React.FC = () => {
 
     const remaining = tabs.filter((t) => t.id !== tabIdToClose)
     setTabs(remaining)
+
+    if (secondaryTabId === tabIdToClose) {
+      setSecondaryTabId(null)
+    }
 
     if (activeTabId === tabIdToClose) {
       if (remaining.length > 0) {
@@ -1235,6 +1249,8 @@ export const App: React.FC = () => {
             onOpenCodeExplain={() => setIsCodeExplainOpen(true)}
             onOpenDiffReview={() => setIsDiffReviewOpen(true)}
             onOpenAiCodeGen={() => setIsAiCodeGenOpen(true)}
+            isSplitView={isSplitView}
+            onToggleSplitView={() => setIsSplitView((prev) => !prev)}
           />
         }
         editor={
@@ -1257,83 +1273,200 @@ export const App: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleForceSave(activeTab)}
-                      className="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-medium shadow transition-colors"
+                      className="px-2.5 py-1 rounded bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-medium shadow transition-colors"
                     >
                       Overwrite Disk
                     </button>
                   </div>
                 </div>
               )}
-              <div className="flex-1 min-h-0">
-                <MonacoEditor
-                  ref={monacoEditorRef}
-                  key={activeTab.id}
-                  value={activeTab.content}
-                  language={activeTab.language}
-                  path={activeTab.path}
-                  onChange={handleContentChange}
-                  onCursorChange={setCursorPosition}
-                  onSelectionChange={(sel) => {
-                    if (!sel || !activeTab) {
-                      setEditorSelection(null)
-                    } else {
-                      setEditorSelection({
-                        text: sel.text,
-                        startLine: sel.startLine,
-                        endLine: sel.endLine,
-                        startCol: sel.startCol,
-                        endCol: sel.endCol,
-                        language: activeTab.language,
-                        filePath: activeTab.path || activeTab.name,
-                      })
-                    }
-                  }}
-                  revealLocation={revealLocation}
-                />
-              </div>
+              {isSplitView && secondaryTab && secondaryTab.id !== activeTab.id ? (
+                <div className="flex-1 min-h-0 flex flex-row overflow-hidden divide-x divide-[#1f212a]">
+                  {/* Left Pane (Primary Active Tab) */}
+                  <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                    <div className="h-7 px-3 bg-[#131419] border-b border-[#1f212a] flex items-center justify-between text-xs text-slate-300 select-none shrink-0 font-mono">
+                      <div className="flex items-center space-x-1.5 min-w-0 truncate">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                        <span className="truncate text-slate-200 font-medium text-[11.5px]">{activeTab.name}</span>
+                        <span className="text-slate-500 text-[10px]">({activeTab.language})</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Primary</span>
+                    </div>
+                    <div className="flex-1 min-h-0">
+                      <MonacoEditor
+                        ref={monacoEditorRef}
+                        key={activeTab.id}
+                        value={activeTab.content}
+                        language={activeTab.language}
+                        path={activeTab.path}
+                        onChange={(val) => handleContentChange(val, activeTab.id)}
+                        onCursorChange={setCursorPosition}
+                        onSelectionChange={(sel) => {
+                          if (!sel || !activeTab) {
+                            setEditorSelection(null)
+                          } else {
+                            setEditorSelection({
+                              text: sel.text,
+                              startLine: sel.startLine,
+                              endLine: sel.endLine,
+                              startCol: sel.startCol,
+                              endCol: sel.endCol,
+                              language: activeTab.language,
+                              filePath: activeTab.path || activeTab.name,
+                            })
+                          }
+                        }}
+                        revealLocation={revealLocation}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right Pane (Secondary Tab) */}
+                  <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                    <div className="h-7 px-2.5 bg-[#131419] border-b border-[#1f212a] flex items-center justify-between text-xs text-slate-300 select-none shrink-0 font-mono">
+                      <div className="flex items-center space-x-1.5 min-w-0">
+                        <select
+                          value={secondaryTab.id}
+                          onChange={(e) => setSecondaryTabId(e.target.value)}
+                          className="bg-[#171822] border border-[#252837] text-slate-200 text-[11px] px-2 py-0.5 rounded focus:outline-none cursor-pointer max-w-[200px] truncate"
+                        >
+                          {tabs.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="text-slate-500 text-[10px]">({secondaryTab.language})</span>
+                      </div>
+                      <button
+                        onClick={() => setIsSplitView(false)}
+                        title="Close Split Editor"
+                        className="p-1 text-slate-400 hover:text-slate-200 hover:bg-[#1f212d] rounded transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="flex-1 min-h-0">
+                      <MonacoEditor
+                        key={`secondary-${secondaryTab.id}`}
+                        value={secondaryTab.content}
+                        language={secondaryTab.language}
+                        path={secondaryTab.path}
+                        onChange={(val) => handleContentChange(val, secondaryTab.id)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 min-h-0">
+                  <MonacoEditor
+                    ref={monacoEditorRef}
+                    key={activeTab.id}
+                    value={activeTab.content}
+                    language={activeTab.language}
+                    path={activeTab.path}
+                    onChange={(val) => handleContentChange(val, activeTab.id)}
+                    onCursorChange={setCursorPosition}
+                    onSelectionChange={(sel) => {
+                      if (!sel || !activeTab) {
+                        setEditorSelection(null)
+                      } else {
+                        setEditorSelection({
+                          text: sel.text,
+                          startLine: sel.startLine,
+                          endLine: sel.endLine,
+                          startCol: sel.startCol,
+                          endCol: sel.endCol,
+                          language: activeTab.language,
+                          filePath: activeTab.path || activeTab.name,
+                        })
+                      }
+                    }}
+                    revealLocation={revealLocation}
+                  />
+                </div>
+              )}
             </div>
           ) : (
-            /* Useful Empty-Editor State */
-            <div className="w-full h-full flex flex-col items-center justify-center bg-[#0b0e14] text-slate-500 font-mono text-xs select-none space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#121622] border border-[#1d2436] flex items-center justify-center text-cyan-400/80 shadow-lg">
-                <FileCode2 className="w-8 h-8" />
+            /* Cursor-style Empty State */
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[#0d0e12] text-slate-400 font-sans text-xs select-none p-6">
+              {/* Subtle logo */}
+              <div className="w-14 h-14 rounded-2xl bg-[#14151e] border border-[#232635] flex items-center justify-center text-violet-400 shadow-xl mb-4">
+                <Sparkles className="w-7 h-7" />
               </div>
-              <div className="text-center space-y-1">
-                <h2 className="text-slate-200 text-sm font-semibold tracking-wide">
-                  AJSON STUDIO
+
+              <div className="text-center space-y-1 mb-6">
+                <h2 className="text-slate-100 text-base font-semibold tracking-wide flex items-center justify-center space-x-2">
+                  <span>Ajson Studio</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-950/60 text-violet-300 border border-violet-800/40 font-mono">v1.0</span>
                 </h2>
-                <p className="text-slate-500 text-[11px]">
+                <p className="text-slate-500 text-xs">
                   {projectRoot ? projectRoot.name : 'AI-Native Desktop Development Environment'}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 pt-2 text-[11.5px] w-72">
+
+              {/* Fast Action Shortcuts Card */}
+              <div className="w-80 max-w-full bg-[#13141a] border border-[#1f212a] rounded-xl p-3 shadow-lg space-y-2 mb-4">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1">
+                  Quick Actions
+                </div>
                 <button
                   onClick={handleOpenFolderDialog}
-                  className="px-3 py-2 bg-[#121622] hover:bg-[#1a2133] hover:text-cyan-300 border border-[#1f283d] rounded flex items-center justify-between text-slate-300 transition-colors shadow-sm"
+                  className="w-full px-2.5 py-1.5 bg-[#171822] hover:bg-[#1d1f2c] border border-[#232635] hover:border-violet-500/40 rounded-lg flex items-center justify-between text-slate-200 transition-colors"
                 >
                   <span className="flex items-center space-x-2">
-                    <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Open Project Folder</span>
+                    <FolderOpen className="w-3.5 h-3.5 text-violet-400" />
+                    <span className="text-[11.5px]">Open Folder</span>
                   </span>
-                  <kbd className="text-[10px] bg-[#1a2133] px-1.5 py-0.5 rounded text-slate-400 font-mono">Ctrl+O</kbd>
+                  <kbd className="text-[10px] bg-[#111218] border border-[#232635] px-1.5 py-0.5 rounded text-slate-400 font-mono">⌘O</kbd>
+                </button>
+                <button
+                  onClick={() => setIsCommandPaletteOpen(true)}
+                  className="w-full px-2.5 py-1.5 bg-[#171822] hover:bg-[#1d1f2c] border border-[#232635] hover:border-violet-500/40 rounded-lg flex items-center justify-between text-slate-200 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <FileCode2 className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="text-[11.5px]">Quick Open & Commands</span>
+                  </span>
+                  <kbd className="text-[10px] bg-[#111218] border border-[#232635] px-1.5 py-0.5 rounded text-slate-400 font-mono">⌘P</kbd>
                 </button>
                 <button
                   onClick={handleNewTab}
-                  className="px-3 py-2 bg-[#121622] hover:bg-[#1a2133] hover:text-cyan-300 border border-[#1f283d] rounded flex items-center justify-between text-slate-300 transition-colors shadow-sm"
+                  className="w-full px-2.5 py-1.5 bg-[#171822] hover:bg-[#1d1f2c] border border-[#232635] hover:border-violet-500/40 rounded-lg flex items-center justify-between text-slate-200 transition-colors"
                 >
                   <span className="flex items-center space-x-2">
                     <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>New Scratchpad</span>
+                    <span className="text-[11.5px]">New Scratchpad</span>
                   </span>
-                  <kbd className="text-[10px] bg-[#1a2133] px-1.5 py-0.5 rounded text-slate-400 font-mono">Ctrl+N</kbd>
+                  <kbd className="text-[10px] bg-[#111218] border border-[#232635] px-1.5 py-0.5 rounded text-slate-400 font-mono">⌘N</kbd>
                 </button>
+              </div>
+
+              {/* Keyboard Shortcuts Reference */}
+              <div className="w-80 max-w-full text-[11px] text-slate-400 space-y-1.5 px-2">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400">AI Composer / Inline Edit</span>
+                  <kbd className="font-mono text-[10px] bg-[#14151d] border border-[#232635] px-1.5 py-0.5 rounded text-slate-300">⌘K</kbd>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400">Toggle AI Chat</span>
+                  <kbd className="font-mono text-[10px] bg-[#14151d] border border-[#232635] px-1.5 py-0.5 rounded text-slate-300">⌘L</kbd>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400">Toggle Primary Sidebar</span>
+                  <kbd className="font-mono text-[10px] bg-[#14151d] border border-[#232635] px-1.5 py-0.5 rounded text-slate-300">⌘B</kbd>
+                </div>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400">Toggle Terminal Panel</span>
+                  <kbd className="font-mono text-[10px] bg-[#14151d] border border-[#232635] px-1.5 py-0.5 rounded text-slate-300">⌘J</kbd>
+                </div>
               </div>
 
               {/* Recent Projects Section */}
               {recentProjects.length > 0 && (
-                <div className="w-80 max-w-full pt-4 border-t border-[#1b2234] mt-3 space-y-2">
+                <div className="w-80 max-w-full pt-3 border-t border-[#1f212a] mt-4 space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                       Recent Projects
                     </span>
                     <button
@@ -1344,23 +1477,23 @@ export const App: React.FC = () => {
                       Clear All
                     </button>
                   </div>
-                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                  <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
                     {recentProjects.map((proj) => (
                       <div
                         key={proj.path}
                         onClick={() => handleOpenRecentProject(proj.path)}
-                        className={`group px-2.5 py-1.5 rounded bg-[#101420] hover:bg-[#182035] border border-[#1a2133] hover:border-cyan-500/30 flex items-center justify-between cursor-pointer transition-all ${
+                        className={`group px-2.5 py-1.5 rounded-lg bg-[#14151c] hover:bg-[#1a1c26] border border-[#1f222d] hover:border-violet-500/30 flex items-center justify-between cursor-pointer transition-all ${
                           proj.exists === false ? 'opacity-65' : ''
                         }`}
                       >
                         <div className="flex items-center space-x-2 min-w-0">
                           <FolderOpen
                             className={`w-3.5 h-3.5 shrink-0 ${
-                              proj.exists === false ? 'text-amber-500' : 'text-cyan-400'
+                              proj.exists === false ? 'text-amber-500' : 'text-violet-400'
                             }`}
                           />
                           <div className="min-w-0 flex flex-col text-left">
-                            <span className="text-slate-200 text-xs font-medium truncate group-hover:text-cyan-300">
+                            <span className="text-slate-200 text-xs font-medium truncate group-hover:text-violet-300">
                               {proj.name}
                             </span>
                             <span className="text-slate-500 text-[10px] truncate max-w-[190px] font-mono">

@@ -1,0 +1,181 @@
+/**
+ * AJSON Studio — Design Tokens
+ * Single source of truth for all colors, spacing, radii, shadows, font sizes.
+ * All component styles MUST use these variables; never hard-code values.
+ *
+ * Theme data-attributes:
+ *   [data-theme="dark"]   — default (dark IDE)
+ *   [data-theme="light"]  — light mode
+ *   system               — matched via prefers-color-scheme
+ */
+
+/* ── Dark theme (default - Antigravity IDE Workbench palette) ─── */
+:root,
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-0: #1E1E1E;      /* main app root / editor background */
+  --bg-1: #181818;      /* secondary panel background: sidebar, activity bar, panel docks */
+  --bg-2: #1E1E1E;      /* editor background / active tab background */
+  --bg-3: #2A2D2E;      /* hover background */
+  --bg-4: #252526;      /* toolbar, elevated surfaces, input fill */
+  --bg-selected: #37373D; /* selected item background */
+  --bg-modal: rgba(24, 24, 24, 0.95);
+
+  /* Borders */
+  --border:        #333333; /* panel borders */
+  --border-subtle: #2B2B2B;
+  --border-strong: #3E3E42;
+  --border-focus:  #007ACC;
+
+  /* Text */
+  --text:       #CCCCCC; /* primary text */
+  --text-muted: #9DA3AE; /* secondary text */
+  --text-dim:   #6E7681;
+  --text-inv:   #FFFFFF;
+
+  /* Accent — Antigravity blue */
+  --accent:       #007ACC;
+  --accent-2:     #1F8AD2;
+  --accent-hover: #0098FF;
+  --accent-mix:   #007ACC;
+
+  /* Semantic */
+  --success: #3FB68B;
+  --warning: #CCA700;
+  --danger:  #F14C4C;
+  --info:    #3794FF;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.45);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.6);
+  --shadow-accent: 0 0 12px rgba(0,122,204,0.25);
+
+  /* Glow */
+  --glow-accent: 0 0 12px rgba(0,122,204,0.30);
+  --glow-accent2: 0 0 12px rgba(31,138,210,0.25);
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-0: #F4F5F9;
+  --bg-1: #FFFFFF;
+  --bg-2: #EDEEF5;
+  --bg-3: #E2E4EE;
+  --bg-4: #D8DAE8;
+  --bg-modal: rgba(240, 241, 248, 0.92);
+
+  --border:        #D0D3E0;
+  --border-subtle: #E2E4EE;
+  --border-strong: #B8BCCC;
+  --border-focus:  #4A6CFF;
+
+  --text:       #1A1D2E;
+  --text-muted: #5A5F78;
+  --text-dim:   #9095AD;
+  --text-inv:   #FFFFFF;
+
+  --accent:     #4A6CFF;
+  --accent-2:   #6A4AFF;
+  --accent-mix: linear-gradient(135deg, #4A6CFF, #6A4AFF);
+
+  --success: #2A9466;
+  --warning: #C4881A;
+  --danger:  #D9404A;
+  --info:    #2E8FD4;
+
+  --shadow-sm:  0 1px 4px rgba(0,0,0,0.08);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.16);
+  --shadow-accent: 0 0 16px rgba(74,108,255,0.18);
+
+  --glow-accent: 0 0 16px rgba(74,108,255,0.22);
+  --glow-accent2: 0 0 16px rgba(106,74,255,0.20);
+}
+
+/* ── Spacing scale (4px base) ─────────────────────────────────── */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Border radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Font sizes */
+  --text-2xs: 10px;
+  --text-xs:  11px;
+  --text-sm:  12px;
+  --text-base: 13px;
+  --text-md:  14px;
+  --text-lg:  16px;
+  --text-xl:  18px;
+  --text-2xl: 22px;
+
+  /* Font families */
+  --font-ui:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  /* Transitions */
+  --transition-fast: 100ms ease;
+  --transition-base: 160ms ease;
+  --transition-slow: 240ms ease;
+
+  /* Layout fixed dims */
+  --activity-bar-w: 48px;
+  --status-bar-h:   24px;
+  --header-h:       40px;
+  --tab-bar-h:      36px;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── System theme auto-match ──────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg-0: #F4F5F9;
+    --bg-1: #FFFFFF;
+    --bg-2: #EDEEF5;
+    --bg-3: #E2E4EE;
+    --bg-4: #D8DAE8;
+    --bg-modal: rgba(240, 241, 248, 0.92);
+    --border:        #D0D3E0;
+    --border-subtle: #E2E4EE;
+    --border-strong: #B8BCCC;
+    --border-focus:  #4A6CFF;
+    --text:       #1A1D2E;
+    --text-muted: #5A5F78;
+    --text-dim:   #9095AD;
+    --text-inv:   #FFFFFF;
+    --accent:     #4A6CFF;
+    --accent-2:   #6A4AFF;
+    --accent-mix: linear-gradient(135deg, #4A6CFF, #6A4AFF);
+    --success: #2A9466;
+    --warning: #C4881A;
+    --danger:  #D9404A;
+    --info:    #2E8FD4;
+    --shadow-sm:  0 1px 4px rgba(0,0,0,0.08);
+    --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
+    --shadow-lg:  0 8px 32px rgba(0,0,0,0.16);
+    --shadow-accent: 0 0 16px rgba(74,108,255,0.18);
+    --glow-accent: 0 0 16px rgba(74,108,255,0.22);
+    --glow-accent2: 0 0 16px rgba(106,74,255,0.20);
+  }
+}

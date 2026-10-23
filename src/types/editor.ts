@@ -38,7 +38,7 @@ export interface FileTreeNode {
   lastModified?: number
 }
 
-export type ActivityView = 'explorer' | 'search' | 'git' | 'extensions'
+export type ActivityView = 'explorer' | 'search' | 'git' | 'extensions' | 'jsontools'
 
 export type BottomTab = 'terminal' | 'problems' | 'output' | 'tests'
 
