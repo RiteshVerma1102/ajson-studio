@@ -1,0 +1,43 @@
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Background Scale (Obsidian Slate) */
+  --bg-0: #06080E;
+  --bg-1: #0B0F19;
+  --bg-2: #111827;
+  --bg-3: #1B2234;
+  --bg-4: #28334A;
+
+  /* Foreground / Text Scale */
+  --fg-0: #FFFFFF;
+  --fg-1: #E5E7EB;
+  --fg-2: #9CA3AF;
+  --fg-3: #64748B;
+
+  /* Brand Accent: Hyper-Cyan */
+  --accent: #00F2FE;
+  --accent-hover: #38F9D7;
+  --accent-active: #05D5E4;
+  --accent-subtle: rgba(0, 242, 254, 0.12);
+  --accent-contrast: #06080E;
+
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-success-subtle: rgba(16, 185, 129, 0.14);
+  --color-warning: #F59E0B;
+  --color-warning-subtle: rgba(245, 158, 11, 0.14);
+  --color-danger: #EF4444;
+  --color-danger-subtle: rgba(239, 68, 68, 0.14);
+  --color-info: #38BDF8;
+  --color-info-subtle: rgba(56, 189, 248, 0.14);
+
+  /* Borders & Dividers */
+  --color-border: #1E293B;
+  --color-border-subtle: rgba(255, 255, 255, 0.07);
+  --color-border-hover: #334155;
+  --color-border-focus: #00F2FE;
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px rgba(0, 242, 254, 0.45);
+}

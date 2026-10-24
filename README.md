@@ -43,8 +43,9 @@ The long-term vision synthesizes the strongest concepts from modern development 
 | **Monorepo Structure** | **Implemented** | Clean directory layout separating frontend, backend, electron, ai, tests, and docs |
 | **Git Configuration & CI Foundation** | **Implemented** | Remote repository connected, GitHub Actions CI workflow initialized, branch model established |
 | **Documentation & Architecture Baseline** | **Implemented** | Architecture overview, security standards, ADR directory, development log foundation |
-| **Desktop Shell (Electron Main/IPC)** | **Planned** | Native window management, sandboxed IPC, file system access (Scheduled: Day 1+) |
-| **IDE Layout & Editor (Monaco/Custom)** | **Planned** | Activity bar, panels, multi-tab editor, status bar (Scheduled: Day 1+) |
+| **IDE Layout & Shell (Frontend Foundation)** | **Implemented** | AppShell, design tokens, multi-panel resizable grid, command palette, themes (Phase 1) |
+| **Desktop Shell (Electron Main/IPC)** | **Planned** | Native window management, sandboxed IPC, file system access (Scheduled: Future Phases) |
+| **Code Editor & Explorer (Monaco)** | **Planned** | Multi-tab editor, virtual file system, tree operations (Scheduled: Phase 2) |
 | **AI Layer & Agent Orchestrator** | **Planned** | Model routing, multi-agent coordination, tool execution (Scheduled: Future Phases) |
 | **Autonomous Coding & Debugging** | **Planned** | Context indexing, automated testing loop, self-healing code runs (Scheduled: Future Phases) |
 | **Browser & Deployment Agents** | **Planned** | Headless browser testing, cloud sandbox, deployment pipelines (Scheduled: Future Phases) |

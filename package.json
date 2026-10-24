@@ -2,6 +2,7 @@
   "name": "ajson-studio",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "AI-native software development environment for intelligent coding, project understanding, autonomous agents, testing, debugging and deployment.",
   "workspaces": [
     "frontend",
@@ -9,11 +10,13 @@
     "electron"
   ],
   "scripts": {
-    "dev": "echo \"[Day 0 Setup] Dev server will be configured in Day 1\" && exit 0",
-    "build": "echo \"[Day 0 Setup] Build pipeline will be configured in Day 1\" && exit 0",
-    "typecheck": "echo \"[Day 0 Setup] TypeScript type checking will be configured in Day 1\" && exit 0",
-    "test": "echo \"[Day 0 Setup] Test suites will be configured in Day 1\" && exit 0",
-    "lint": "echo \"[Day 0 Setup] Linting will be configured in Day 1\" && exit 0"
+    "dev": "npm --workspace=frontend run dev",
+    "build": "npm --workspace=frontend run build",
+    "typecheck": "npm --workspace=frontend run typecheck",
+    "test": "npm --workspace=frontend run test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "ajson-studio",
@@ -26,5 +29,16 @@
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
   }
 }

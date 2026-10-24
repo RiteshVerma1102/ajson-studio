@@ -1,0 +1,73 @@
+.bottomPanel {
+  height: 100%;
+  background-color: var(--bg-1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+.header {
+  height: 35px;
+  background-color: var(--bg-1);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-2);
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  height: 34px;
+  font-size: var(--text-xs);
+  color: var(--fg-2);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.tab:hover {
+  color: var(--fg-0);
+}
+
+.tab.active {
+  color: var(--fg-0);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3);
+}
+
+.terminalOutput {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--fg-1);
+  white-space: pre-wrap;
+}
+
+.prompt {
+  color: var(--accent);
+  font-weight: 600;
+}

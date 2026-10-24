@@ -1,0 +1,71 @@
+.activityBar {
+  width: var(--activitybar-width);
+  height: 100%;
+  background-color: var(--bg-1);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  user-select: none;
+  z-index: var(--z-sidebar);
+}
+
+.topGroup,
+.bottomGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.actionItem {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--fg-3);
+  transition: all var(--duration-fast) var(--ease-standard);
+  background: transparent;
+}
+
+.actionItem:hover {
+  color: var(--fg-1);
+  background-color: var(--bg-2);
+}
+
+.actionItem.active {
+  color: var(--fg-0);
+}
+
+.activeIndicator {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background-color: var(--accent);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: var(--radius-full);
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

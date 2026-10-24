@@ -1,0 +1,42 @@
+[data-theme='high-contrast'] {
+  color-scheme: dark;
+
+  /* Background Scale */
+  --bg-0: #000000;
+  --bg-1: #000000;
+  --bg-2: #050505;
+  --bg-3: #121212;
+  --bg-4: #222222;
+
+  /* Foreground / Text Scale */
+  --fg-0: #FFFFFF;
+  --fg-1: #FFFFFF;
+  --fg-2: #E0E0E0;
+  --fg-3: #B0B0B0;
+
+  /* Brand Accent */
+  --accent: #00F2FE;
+  --accent-hover: #38F9D7;
+  --accent-active: #FFFFFF;
+  --accent-subtle: rgba(0, 242, 254, 0.25);
+  --accent-contrast: #000000;
+
+  /* Semantic Colors */
+  --color-success: #00FF88;
+  --color-success-subtle: rgba(0, 255, 136, 0.2);
+  --color-warning: #FFD600;
+  --color-warning-subtle: rgba(255, 214, 0, 0.2);
+  --color-danger: #FF3344;
+  --color-danger-subtle: rgba(255, 51, 68, 0.2);
+  --color-info: #00D0FF;
+  --color-info-subtle: rgba(0, 208, 255, 0.2);
+
+  /* High Contrast Borders */
+  --color-border: #666666;
+  --color-border-subtle: #444444;
+  --color-border-hover: #FFFFFF;
+  --color-border-focus: #00F2FE;
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 3px #00F2FE;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@ajson-studio/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ajson Studio Backend Services & Tool Execution",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "echo \"[Backend] Stub build\" && exit 0",
+    "typecheck": "echo \"[Backend] Stub typecheck\" && exit 0",
+    "test": "echo \"[Backend] Stub test\" && exit 0",
+    "lint": "echo \"[Backend] Stub lint\" && exit 0"
+  }
+}

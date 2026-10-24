@@ -32,6 +32,9 @@ jobs:
             npm install
           fi
 
+      - name: Lint verification
+        run: npm run lint
+
       - name: TypeScript type checking
         run: npm run typecheck
 

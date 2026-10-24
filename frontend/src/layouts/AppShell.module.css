@@ -1,0 +1,33 @@
+.shell {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-0);
+  color: var(--fg-1);
+}
+
+.workspaceArea {
+  flex: 1;
+  display: flex;
+  height: calc(100vh - var(--titlebar-height) - var(--statusbar-height));
+  overflow: hidden;
+  position: relative;
+}
+
+.panelGroup {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Mission Control / Manager view placeholder */
+.managerView {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-0);
+  padding: var(--space-8);
+}
