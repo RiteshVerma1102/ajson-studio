@@ -21,10 +21,10 @@ export interface WorkspaceStateDTO {
   activeTabPath: string | null
   sidebarOpen: boolean
   sidebarWidth?: number
-  activeActivityView: 'explorer' | 'search' | 'git' | 'extensions'
+  activeActivityView: 'explorer' | 'search' | 'git' | 'extensions' | 'jsontools'
   bottomPanelOpen: boolean
   bottomPanelHeight?: number
-  activeBottomTab: 'terminal' | 'problems' | 'output'
+  activeBottomTab: 'terminal' | 'problems' | 'output' | 'tests'
 }
 
 export const MAX_RECENT_PROJECTS = 10
@@ -148,7 +148,7 @@ export function sanitizeWorkspaceState(raw: unknown): WorkspaceStateDTO {
   // 6. Sidebar & Panels
   const sidebarOpen = typeof obj.sidebarOpen === 'boolean' ? obj.sidebarOpen : defaults.sidebarOpen
 
-  const validActivityViews = ['explorer', 'search', 'git', 'extensions'] as const
+  const validActivityViews = ['explorer', 'search', 'git', 'extensions', 'jsontools'] as const
   const activeActivityView = validActivityViews.includes(obj.activeActivityView as any)
     ? (obj.activeActivityView as WorkspaceStateDTO['activeActivityView'])
     : defaults.activeActivityView
@@ -156,7 +156,7 @@ export function sanitizeWorkspaceState(raw: unknown): WorkspaceStateDTO {
   const bottomPanelOpen =
     typeof obj.bottomPanelOpen === 'boolean' ? obj.bottomPanelOpen : defaults.bottomPanelOpen
 
-  const validBottomTabs = ['terminal', 'problems', 'output'] as const
+  const validBottomTabs = ['terminal', 'problems', 'output', 'tests'] as const
   const activeBottomTab = validBottomTabs.includes(obj.activeBottomTab as any)
     ? (obj.activeBottomTab as WorkspaceStateDTO['activeBottomTab'])
     : defaults.activeBottomTab

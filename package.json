@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "node --test tests/fileOperations.test.mjs tests/projectSearch.test.mjs tests/day2WorkflowVerification.mjs tests/commandPalette.test.mjs tests/workspacePersistence.test.mjs tests/aiIntegration.test.mjs tests/day4CodeContext.test.mjs"
+    "test": "node --test tests/fileOperations.test.mjs tests/projectSearch.test.mjs tests/day2WorkflowVerification.mjs tests/commandPalette.test.mjs tests/workspacePersistence.test.mjs tests/aiIntegration.test.mjs tests/day4CodeContext.test.mjs tests/jsonUtils.test.mjs tests/commandRunner.test.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

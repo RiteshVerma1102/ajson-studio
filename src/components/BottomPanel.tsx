@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useSyncExternalStore } from 'react'
 import {
   Terminal as TerminalIcon,
   AlertCircle,
@@ -6,10 +6,14 @@ import {
   X,
   Trash2,
   CheckCircle2,
-  Check,
-  Split,
+  XCircle,
+  Square,
+  Play,
 } from 'lucide-react'
+import { useMonaco } from '@monaco-editor/react'
 import { BottomTab } from '../types/editor'
+import { terminalStore } from '../services/terminalStore'
+import type { GitStatusResult } from '../types/electron'
 
 interface BottomPanelProps {
   activeTab: BottomTab
@@ -19,304 +23,278 @@ interface BottomPanelProps {
   onHeightChange?: (h: number) => void
 }
 
-interface TerminalHistoryEntry {
-  type: 'command' | 'output' | 'error' | 'system'
-  text: string
+interface Problem {
+  file: string
+  line: number
+  column: number
+  message: string
+  severity: 'error' | 'warning' | 'info'
 }
 
-export const BottomPanel: React.FC<BottomPanelProps> = ({
-  activeTab,
-  onSelectTab,
-  onClose,
-  height,
-}) => {
-  const [terminalInput, setTerminalInput] = useState('')
-  const [terminalHistory, setTerminalHistory] = useState<TerminalHistoryEntry[]>([
-    { type: 'system', text: 'Ajson Studio Interactive Workspace Shell [v0.1.0-alpha]' },
-    { type: 'system', text: 'Type "help", "npm test", "git status", or "clear" to interact.' },
-    { type: 'output', text: '[ai-daemon] Speculative AST guardrail active. Listening on localhost:5173' },
-  ])
+const TAB_BASE = 'h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px]'
+const tabClass = (active: boolean) =>
+  `${TAB_BASE} ${
+    active
+      ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
+      : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
+  }`
 
-  const terminalEndRef = useRef<HTMLDivElement>(null)
+export const BottomPanel: React.FC<BottomPanelProps> = ({ activeTab, onSelectTab, onClose, height }) => {
+  const term = useSyncExternalStore(terminalStore.subscribe, terminalStore.getState)
+  const monaco = useMonaco()
+  const isDesktop = typeof window !== 'undefined' && !!window.ajsonAPI?.terminal
+
+  const [input, setInput] = useState('')
+  const [historyIdx, setHistoryIdx] = useState<number | null>(null)
+  const [problems, setProblems] = useState<Problem[]>([])
+  const [folderName, setFolderName] = useState<string | null>(null)
+  const [git, setGit] = useState<GitStatusResult | null>(null)
+  const endRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (activeTab === 'terminal') {
-      terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [terminalHistory, activeTab])
+    terminalStore.init()
+  }, [])
 
-  const handleCommandSubmit = (e: React.FormEvent) => {
+  // Real project folder + git branch (refreshed whenever a command finishes)
+  useEffect(() => {
+    const api = window.ajsonAPI
+    if (!api) return
+    api.project.getRoot().then((r: { name: string } | null) => setFolderName(r?.name ?? null)).catch(() => setFolderName(null))
+    api.git.status().then(setGit).catch(() => setGit(null))
+  }, [term.runningId])
+
+  // Real diagnostics from Monaco's language services
+  useEffect(() => {
+    if (!monaco) return
+    const collect = () => {
+      const list: Problem[] = monaco.editor.getModelMarkers({}).map((m) => ({
+        file: m.resource.path.split('/').pop() || m.resource.toString(),
+        line: m.startLineNumber,
+        column: m.startColumn,
+        message: m.message,
+        severity: m.severity >= 8 ? 'error' : m.severity >= 4 ? 'warning' : 'info',
+      }))
+      setProblems(list)
+    }
+    collect()
+    const sub = monaco.editor.onDidChangeMarkers(collect)
+    return () => sub.dispose()
+  }, [monaco])
+
+  useEffect(() => {
+    if (activeTab === 'terminal') endRef.current?.scrollIntoView({ block: 'end' })
+  }, [term.lines, activeTab])
+
+  const errorCount = problems.filter((p) => p.severity === 'error').length
+  const prompt = `${folderName ?? 'no-folder'}${git?.isRepo && git.branch ? ` (${git.branch})` : ''} $`
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmed = terminalInput.trim()
-    if (!trimmed) return
-
-    const newHistory: TerminalHistoryEntry[] = [
-      ...terminalHistory,
-      { type: 'command', text: trimmed },
-    ]
-
-    const args = trimmed.split(' ')
-    const cmd = args[0].toLowerCase()
-
-    if (cmd === 'clear') {
-      setTerminalHistory([])
-      setTerminalInput('')
+    const cmd = input.trim()
+    if (!cmd) return
+    setInput('')
+    setHistoryIdx(null)
+    if (cmd === 'clear' || cmd === 'cls') {
+      terminalStore.clear()
       return
-    } else if (cmd === 'help') {
-      newHistory.push({
-        type: 'output',
-        text: 'Available Commands:\n  help           - Display command reference\n  npm test       - Run full verification suite (96 tests)\n  git status     - Check uncommitted modifications\n  ai status      - Check connected AI model provider status\n  ls / dir       - List project files in workspace\n  clear          - Clear terminal buffer',
-      })
-    } else if (trimmed === 'npm test' || trimmed === 'test') {
-      newHistory.push({
-        type: 'output',
-        text: '▶ Running Ajson Studio Test Suite...\n  ✔ AI Provider Catalogue (3.8ms)\n  ✔ Speculative AST Guardrails (12.4ms)\n  ✔ Workspace Persistence & File System (42.1ms)\n  ✔ Project-wide Search & Streaming Diff (54.2ms)\nℹ tests 96 | pass 96 | fail 0 | duration 818ms\n✨ All 96 tests passed successfully!',
-      })
-    } else if (trimmed === 'git status') {
-      newHistory.push({
-        type: 'output',
-        text: 'On branch main\nYour branch is up to date with \'origin/main\'.\n\nChanges not staged for commit:\n  modified:   src/ai/AgentCoordinator.ts\n  modified:   src/core/StreamingDiffEngine.ts\n\nUntracked files:\n  src/types/models.d.ts',
-      })
-    } else if (trimmed === 'ai status') {
-      newHistory.push({
-        type: 'output',
-        text: 'AI Agent Status:\n  Provider: Anthropic Claude 3.7 Sonnet\n  Guardrail Engine: Speculative AST (Active, 8 token window)\n  Latency: 214ms\n  Context Tokens: 1,420 / 200,000',
-      })
-    } else if (cmd === 'ls' || cmd === 'dir') {
-      newHistory.push({
-        type: 'output',
-        text: 'src/  tests/  package.json  tsconfig.json  README.md  vite.config.ts',
-      })
-    } else {
-      newHistory.push({
-        type: 'output',
-        text: `ajson-shell: '${cmd}': executed in workspace sandbox.`,
-      })
     }
-
-    setTerminalHistory(newHistory)
-    setTerminalInput('')
+    void terminalStore.run(cmd)
   }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const hist = term.commandHistory
+    if (e.key === 'c' && e.ctrlKey && term.runningId) {
+      e.preventDefault()
+      void terminalStore.stop()
+    } else if (e.key === 'ArrowUp' && hist.length) {
+      e.preventDefault()
+      const idx = historyIdx === null ? hist.length - 1 : Math.max(0, historyIdx - 1)
+      setHistoryIdx(idx)
+      setInput(hist[idx])
+    } else if (e.key === 'ArrowDown' && historyIdx !== null) {
+      e.preventDefault()
+      const idx = historyIdx + 1
+      if (idx >= hist.length) {
+        setHistoryIdx(null)
+        setInput('')
+      } else {
+        setHistoryIdx(idx)
+        setInput(hist[idx])
+      }
+    }
+  }
+
+  const tr = term.lastTestRun
 
   return (
     <div
       style={{ height: `${height}px` }}
       className="bg-[#181818] border-t border-[#333333] flex flex-col select-none text-xs shrink-0 overflow-hidden"
     >
-      {/* Panel Tab Header Bar */}
       <div className="h-8 px-2 bg-[#181818] border-b border-[#333333] flex items-center justify-between text-[#CCCCCC]">
-        <div className="flex items-center space-x-1 h-full">
-          {/* Terminal Tab */}
-          <button
-            onClick={() => onSelectTab('terminal')}
-            className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
-              activeTab === 'terminal'
-                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
-                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
-            }`}
-          >
+        <div className="flex items-center space-x-1 h-full" role="tablist">
+          <button role="tab" aria-selected={activeTab === 'terminal'} onClick={() => onSelectTab('terminal')} className={tabClass(activeTab === 'terminal')}>
             <TerminalIcon className="w-3.5 h-3.5" />
             <span>Terminal</span>
           </button>
-
-          {/* Problems Tab */}
-          <button
-            onClick={() => onSelectTab('problems')}
-            className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
-              activeTab === 'problems'
-                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
-                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
-            }`}
-          >
+          <button role="tab" aria-selected={activeTab === 'problems'} onClick={() => onSelectTab('problems')} className={tabClass(activeTab === 'problems')}>
             <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
             <span>Problems</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#252526] text-amber-300 border border-[#333333] font-mono">
-              1
-            </span>
+            {problems.length > 0 && (
+              <span className="text-[10px] px-1.5 rounded-full bg-[#252526] text-amber-300 border border-[#333333] font-mono">
+                {problems.length}
+              </span>
+            )}
           </button>
-
-          {/* Output Tab */}
-          <button
-            onClick={() => onSelectTab('output')}
-            className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
-              activeTab === 'output'
-                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
-                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
-            }`}
-          >
+          <button role="tab" aria-selected={activeTab === 'output'} onClick={() => onSelectTab('output')} className={tabClass(activeTab === 'output')}>
             <FileTerminal className="w-3.5 h-3.5" />
             <span>Output</span>
           </button>
-
-          {/* Tests Tab */}
-          <button
-            onClick={() => onSelectTab('tests')}
-            className={`h-full px-3 flex items-center space-x-1.5 transition-colors border-b-2 text-[11.5px] ${
-              activeTab === 'tests'
-                ? 'border-[#007ACC] text-white font-medium bg-[#1E1E1E]'
-                : 'border-transparent text-[#9DA3AE] hover:text-white hover:bg-[#252526]'
-            }`}
-          >
+          <button role="tab" aria-selected={activeTab === 'tests'} onClick={() => onSelectTab('tests')} className={tabClass(activeTab === 'tests')}>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Tests</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#252526] text-emerald-300 border border-[#333333] font-mono">
-              96 passing
-            </span>
+            {tr?.summary && (
+              <span className={`text-[10px] px-1.5 rounded-full bg-[#252526] border border-[#333333] font-mono ${tr.summary.fail ? 'text-red-300' : 'text-emerald-300'}`}>
+                {tr.summary.fail ? `${tr.summary.fail} failing` : `${tr.summary.pass} passing`}
+              </span>
+            )}
           </button>
         </div>
 
-        {/* Panel Action Controls */}
         <div className="flex items-center space-x-1 text-[#9DA3AE]">
           {activeTab === 'terminal' && (
             <>
-              <button
-                onClick={() => setTerminalHistory([])}
-                title="Clear Terminal"
-                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
-              >
+              {term.runningId && (
+                <button onClick={() => void terminalStore.stop()} title="Stop running command (Ctrl+C)" className="p-1 text-red-400 hover:text-red-300 hover:bg-[#2A2D2E] rounded-sm transition-colors">
+                  <Square className="w-3.5 h-3.5 fill-current" />
+                </button>
+              )}
+              <button onClick={() => terminalStore.clear()} title="Clear Terminal" className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />
-              </button>
-              <button
-                title="Split Terminal"
-                className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
-              >
-                <Split className="w-3.5 h-3.5" />
               </button>
             </>
           )}
-
-          <button
-            onClick={onClose}
-            title="Close Panel"
-            className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors"
-          >
+          <button onClick={onClose} title="Close Panel" className="p-1 hover:text-white hover:bg-[#2A2D2E] rounded-sm transition-colors">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Tab Content Body */}
       <div className="flex-1 overflow-hidden p-2 font-mono text-[11.5px] bg-[#1E1E1E]">
-        {/* Terminal Content */}
         {activeTab === 'terminal' && (
-          <div className="h-full flex flex-col overflow-y-auto px-2 space-y-1">
-            {terminalHistory.map((entry, idx) => (
-              <div key={idx} className="leading-relaxed">
-                {entry.type === 'command' && (
-                  <div className="flex items-center space-x-2 text-[#CCCCCC]">
-                    <span className="text-[#007ACC] font-semibold select-none">
-                      ajson-studio:~/quantum-mesh (main) $
-                    </span>
-                    <span className="text-white">{entry.text}</span>
-                  </div>
-                )}
-                {entry.type === 'system' && (
-                  <div className="text-[#858585]">{entry.text}</div>
-                )}
-                {entry.type === 'output' && (
-                  <div className="text-[#CCCCCC] whitespace-pre-wrap pl-2 border-l border-[#333333]">
-                    {entry.text}
-                  </div>
-                )}
-                {entry.type === 'error' && (
-                  <div className="text-[#F14C4C] whitespace-pre-wrap">{entry.text}</div>
-                )}
+          <div className="h-full flex flex-col overflow-y-auto px-2 select-text" onClick={() => inputRef.current?.focus()}>
+            {!isDesktop && (
+              <div className="text-amber-300 pb-1">
+                The terminal needs the Ajson Studio desktop app (it runs real commands through the Electron backend). This browser preview cannot execute commands.
               </div>
-            ))}
-
-            {/* Input Prompt */}
-            <form onSubmit={handleCommandSubmit} className="flex items-center space-x-2 pt-1">
-              <span className="text-[#007ACC] font-semibold select-none">
-                ajson-studio:~/quantum-mesh (main) $
-              </span>
+            )}
+            {isDesktop && !folderName && term.lines.length === 0 && (
+              <div className="text-[#858585] pb-1">Open a project folder to run commands in it.</div>
+            )}
+            <div className="whitespace-pre-wrap break-words leading-relaxed">
+              {term.lines.map((l, i) =>
+                l.kind === 'command' ? (
+                  <div key={i} className="text-white">
+                    <span className="text-[#007ACC] font-semibold">{prompt} </span>
+                    {l.text}
+                  </div>
+                ) : (
+                  <span key={i} className={l.kind === 'stderr' ? 'text-[#F14C4C]' : l.kind === 'system' ? 'text-[#858585]' : 'text-[#CCCCCC]'}>
+                    {l.text}
+                  </span>
+                )
+              )}
+            </div>
+            <form onSubmit={submit} className="flex items-center space-x-2 pt-1">
+              <span className="text-[#007ACC] font-semibold whitespace-nowrap">{prompt}</span>
               <input
+                ref={inputRef}
                 type="text"
-                value={terminalInput}
-                onChange={(e) => setTerminalInput(e.target.value)}
-                placeholder="Type command ('npm test', 'git status', 'help')..."
-                className="flex-1 bg-transparent text-[#CCCCCC] outline-none border-none font-mono text-[11.5px]"
+                value={input}
+                disabled={!isDesktop || !!term.runningId}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                aria-label="Terminal command input"
+                placeholder={term.runningId ? 'Running… (Ctrl+C to stop)' : 'Type a command'}
+                className="flex-1 bg-transparent text-[#CCCCCC] outline-none border-none font-mono text-[11.5px] placeholder:text-[#5a5a5a]"
                 autoFocus
               />
             </form>
-            <div ref={terminalEndRef} />
+            <div ref={endRef} />
           </div>
         )}
 
-        {/* Problems Content */}
         {activeTab === 'problems' && (
-          <div className="h-full overflow-y-auto p-2 space-y-1.5">
-            <div className="flex items-start space-x-2 p-2 rounded-lg bg-amber-950/20 border border-amber-800/30 text-amber-300 cursor-pointer hover:bg-amber-950/30 transition-colors">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <div className="font-semibold text-slate-200">
-                  src/core/AstValidator.ts: Line 62, Col 14
+          <div className="h-full overflow-y-auto p-2 space-y-1">
+            {problems.length === 0 ? (
+              <div className="text-[#858585]">No problems detected in open files.</div>
+            ) : (
+              problems.map((p, i) => (
+                <div key={i} className="flex items-start space-x-2 py-0.5">
+                  {p.severity === 'error' ? <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />}
+                  <div className="text-[#CCCCCC]">
+                    {p.message} <span className="text-[#858585]">{p.file} [{p.line}, {p.column}]</span>
+                  </div>
                 </div>
-                <div className="text-slate-400 text-[11px] mt-0.5">
-                  Warning: Potential cyclic AST reference during deep object inspection. Memoized hash snapshot recommended.
-                </div>
-              </div>
-            </div>
+              ))
+            )}
+            {errorCount > 0 && <div className="text-[#858585] pt-1">{errorCount} error(s)</div>}
           </div>
         )}
 
-        {/* Output Content */}
         {activeTab === 'output' && (
-          <div className="h-full overflow-y-auto p-2 text-slate-400 space-y-1">
-            <div className="text-slate-500">[Vite] Pre-bundling dependencies: @monaco-editor/react, lucide-react</div>
-            <div className="text-emerald-400">[Vite] ✨ Built in 184ms.</div>
-            <div className="text-slate-400">[Ajson Language Server] TypeScript 5.6.3 language server ready (43 files indexed)</div>
-            <div className="text-violet-400">[Ajson Copilot] Claude 3.7 Sonnet connection verified.</div>
+          <div className="h-full overflow-y-auto p-2 space-y-1 text-[#CCCCCC]">
+            {term.runLog.length === 0 ? (
+              <div className="text-[#858585]">No commands have been run yet.</div>
+            ) : (
+              term.runLog.map((r) => (
+                <div key={r.id}>
+                  <span className="text-[#858585]">{new Date(r.startedAt).toLocaleTimeString()} </span>
+                  <span className="text-white">{r.command}</span>{' '}
+                  {r.endedAt === undefined ? (
+                    <span className="text-amber-300">running…</span>
+                  ) : r.reason === 'completed' && r.exitCode === 0 ? (
+                    <span className="text-emerald-400">✓ exit 0 ({r.endedAt - r.startedAt}ms)</span>
+                  ) : (
+                    <span className="text-red-400">✗ {r.reason === 'completed' ? `exit ${r.exitCode}` : r.reason}</span>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
 
-        {/* Tests Content */}
         {activeTab === 'tests' && (
           <div className="h-full overflow-y-auto p-2 space-y-2">
-            <div className="flex items-center justify-between pb-2 border-b border-[#20222b]">
-              <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span className="font-semibold text-slate-100">Test Execution Summary</span>
-              </div>
-              <span className="text-emerald-400 font-mono text-xs">96 passed (818ms)</span>
+            <div className="flex items-center justify-between pb-2 border-b border-[#333333]">
+              <span className="font-semibold text-[#E6E6E6]">Test run</span>
+              <button
+                disabled={!isDesktop || !!term.runningId || !folderName}
+                onClick={() => {
+                  onSelectTab('terminal')
+                  void terminalStore.run('npm test', { isTest: true })
+                }}
+                className="flex items-center space-x-1 px-2 py-0.5 rounded-sm bg-[#252526] border border-[#333333] text-[#CCCCCC] hover:bg-[#2A2D2E] disabled:opacity-40"
+              >
+                <Play className="w-3 h-3 text-emerald-400" />
+                <span>Run npm test</span>
+              </button>
             </div>
-
-            <div className="space-y-1 text-[11px]">
-              <div className="flex items-center justify-between py-1 px-2 rounded bg-[#151620] text-slate-300">
-                <span className="flex items-center space-x-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>AI Provider Catalogue & Credential Store</span>
-                </span>
-                <span className="text-slate-500 font-mono">14 tests passed</span>
+            {!tr ? (
+              <div className="text-[#858585]">No test run yet. Results appear here after running <code>npm test</code>.</div>
+            ) : tr.running ? (
+              <div className="text-amber-300">Running {tr.command}…</div>
+            ) : tr.summary ? (
+              <div className={tr.summary.fail ? 'text-red-300' : 'text-emerald-400'}>
+                {tr.summary.pass} passed, {tr.summary.fail} failed, {tr.summary.skipped} skipped of {tr.summary.tests}
+                {tr.summary.durationMs !== null && ` (${Math.round(tr.summary.durationMs)}ms)`}
               </div>
-              <div className="flex items-center justify-between py-1 px-2 rounded bg-[#151620] text-slate-300">
-                <span className="flex items-center space-x-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Speculative Token Stream & Cancellation Registry</span>
-                </span>
-                <span className="text-slate-500 font-mono">18 tests passed</span>
+            ) : (
+              <div className="text-amber-300">
+                {tr.command} exited with code {tr.exitCode ?? 'n/a'}; no test summary could be parsed from its output. See the Terminal tab.
               </div>
-              <div className="flex items-center justify-between py-1 px-2 rounded bg-[#151620] text-slate-300">
-                <span className="flex items-center space-x-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Real Project-wide Search & In-memory Buffers</span>
-                </span>
-                <span className="text-slate-500 font-mono">10 tests passed</span>
-              </div>
-              <div className="flex items-center justify-between py-1 px-2 rounded bg-[#151620] text-slate-300">
-                <span className="flex items-center space-x-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Workspace Persistence & Panel Dimension Clamping</span>
-                </span>
-                <span className="text-slate-500 font-mono">12 tests passed</span>
-              </div>
-              <div className="flex items-center justify-between py-1 px-2 rounded bg-[#151620] text-slate-300">
-                <span className="flex items-center space-x-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Command Palette Dispatch & Fuzzy Matching</span>
-                </span>
-                <span className="text-slate-500 font-mono">10 tests passed</span>
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>

@@ -34,6 +34,10 @@ export interface FileNodeDTO {
 // Global active project root tracked by the main process
 let activeProjectRoot: string | null = null
 
+export function getActiveProjectRoot(): string | null {
+  return activeProjectRoot
+}
+
 // Directories to ignore by default for performance and clean view
 const DEFAULT_IGNORED_DIRS = new Set([
   'node_modules',

@@ -12,7 +12,6 @@ import {
   Send,
   Settings,
   ChevronDown,
-  ChevronRight,
   CheckCircle2,
   Loader2,
   Trash2,
@@ -21,17 +20,16 @@ import {
   GitCompare,
   BookOpen,
   CornerDownLeft,
-  AtSign,
-  Command,
   Plus,
   History,
   Square,
   AlertTriangle,
 } from 'lucide-react'
-import type { AiMessage, AiProviderId, AiConfigResult } from '../types/electron.d.ts'
+import type { AiMessage, AiProviderId, AiConfigResult, AiCodeContext } from '../types/electron.d.ts'
 import {
   AI_PROVIDERS,
   generateMessageId,
+  generateRequestId,
 } from '../services/aiService'
 
 interface AiPanelProps {
@@ -56,6 +54,16 @@ interface AiPanelProps {
 }
 
 type PanelView = 'chat' | 'settings'
+
+const ALL_MODELS = AI_PROVIDERS.flatMap((p) =>
+  p.models.map((m) => ({ providerId: p.id as AiProviderId, providerName: p.displayName, ...m }))
+)
+
+function modelDisplayName(modelId: string): string {
+  return ALL_MODELS.find((m) => m.id === modelId)?.displayName ?? modelId
+}
+
+const WELCOME_MESSAGE_ID = 'msg-seed-assistant-1'
 
 const SAMPLE_INITIAL_MESSAGES: AiMessage[] = [
   {
@@ -274,7 +282,6 @@ const MessageBubble: React.FC<{
 }> = ({ msg, onInsertCode, onOpenDiffReview, onOpenCodeExplain }) => {
   const isUser = msg.role === 'user'
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
-  const [showThinking, setShowThinking] = useState(false)
 
   const copyToClipboard = (code: string, idx: number) => {
     navigator.clipboard.writeText(code)
@@ -396,34 +403,15 @@ const MessageBubble: React.FC<{
         ) : (
           <div className="flex items-center space-x-1 text-violet-400">
             <Bot className="w-3.5 h-3.5" />
-            <span className="font-semibold">Claude 3.7 Sonnet</span>
+            <span className="font-semibold">{msg.modelId ? modelDisplayName(msg.modelId) : 'Assistant'}</span>
           </div>
         )}
         {msg.contextAttached && (
           <span className="text-[9px] px-1.5 py-0.2 rounded bg-violet-950/50 text-violet-300 border border-violet-800/40">
-            @AgentCoordinator.ts:48-75
+            {msg.contextLabel ?? '@context'}
           </span>
         )}
       </div>
-
-      {!isUser && (
-        <div className="w-full max-w-[95%]">
-          <button
-            onClick={() => setShowThinking(!showThinking)}
-            className="flex items-center space-x-1 text-[10.5px] text-slate-500 hover:text-slate-300 py-0.5 transition-colors"
-          >
-            <ChevronRight className={`w-3 h-3 transition-transform ${showThinking ? 'rotate-90' : ''}`} />
-            <span className="font-mono">Thinking Process (2.1s)</span>
-          </button>
-          {showThinking && (
-            <div className="p-2.5 my-1 rounded-lg bg-[#0f1015] border border-[#20222e] text-[11px] text-slate-400 font-mono space-y-1">
-              <div>1. Identified unbound token accumulator risk in original generator.</div>
-              <div>2. Added sliding window buffer with Myers hunk partition.</div>
-              <div>3. Bound incremental AST validator to emit speculative rollback telemetry.</div>
-            </div>
-          )}
-        </div>
-      )}
 
       <div
         className={`px-3.5 py-2.5 rounded-xl text-xs leading-relaxed max-w-[95%] code-selectable whitespace-pre-wrap break-words ${
@@ -461,7 +449,7 @@ export const AiPanel: React.FC<AiPanelProps> = ({
 
   const [view, setView] = useState<PanelView>('chat')
   const [config, setConfig] = useState<AiConfigResult | null>(null)
-  const [selectedModel, setSelectedModel] = useState('claude-3-7-sonnet')
+  const [selectedModel, setSelectedModel] = useState('claude-sonnet-5-5')
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
       id: 'session-1',
@@ -480,13 +468,12 @@ export const AiPanel: React.FC<AiPanelProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const generationTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    if (window.ajsonAPI) {
+    if (window.ajsonAPI && isOpen) {
       window.ajsonAPI.ai.getConfig().then(setConfig).catch(console.error)
     }
-  }, [])
+  }, [isOpen, view])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -498,15 +485,6 @@ export const AiPanel: React.FC<AiPanelProps> = ({
       prev.map((s) => (s.id === activeSessionId ? { ...s, messages } : s))
     )
   }, [messages, activeSessionId])
-
-  // Map selected model to provider
-  const currentProviderId: AiProviderId = selectedModel.includes('gpt')
-    ? 'openai'
-    : selectedModel.includes('gemini')
-    ? 'google'
-    : 'anthropic'
-
-  const isConfigured = config ? config[currentProviderId]?.configured : false
 
   const handleNewChat = () => {
     const newId = `session-${Date.now()}`
@@ -534,59 +512,118 @@ export const AiPanel: React.FC<AiPanelProps> = ({
     }
   }
 
+  const activeRequestIdRef = useRef<string | null>(null)
+
   const handleStopGenerating = () => {
-    if (status === 'loading') {
-      if (generationTimerRef.current) {
-        clearTimeout(generationTimerRef.current)
-        generationTimerRef.current = null
-      }
-      setStatus('cancelled')
+    if (status !== 'loading') {
+      return
     }
+    const id = activeRequestIdRef.current
+    activeRequestIdRef.current = null // late results for this request are discarded
+    if (id) {
+      void window.ajsonAPI?.ai.cancelRequest(id)
+    }
+    setStatus('cancelled')
   }
 
-  const handleSend = (e: React.FormEvent) => {
+  const buildContext = (): { context: AiCodeContext | null; label: string | null } => {
+    const hasSel = attachedContext.some((c) => c.startsWith('@sel:'))
+    if (hasSel && editorSelection?.text) {
+      const label = attachedContext.find((c) => c.startsWith('@sel:')) as string
+      return {
+        label,
+        context: {
+          type: 'selection',
+          filePath: editorSelection.filePath,
+          language: editorSelection.language,
+          content: editorSelection.text,
+          label,
+          startLine: editorSelection.startLine,
+          endLine: editorSelection.endLine,
+        },
+      }
+    }
+    const fileChip = attachedContext.find((c) => c.startsWith('@') && !c.startsWith('@sel:'))
+    if (fileChip && activeFilePath && activeFileContent) {
+      return {
+        label: fileChip,
+        context: {
+          type: 'file',
+          filePath: activeFilePath,
+          language: activeFileLanguage || 'plaintext',
+          content: activeFileContent,
+          label: fileChip,
+        },
+      }
+    }
+    return { context: null, label: null }
+  }
+
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
-    if (!text || status === 'loading') return
+    if (!text || status === 'loading') {
+      return
+    }
+
+    const api = window.ajsonAPI?.ai
+    const provider = ALL_MODELS.find((m) => m.id === selectedModel)?.providerId
+    const { context, label } = buildContext()
 
     const userMsg: AiMessage = {
       id: generateMessageId(),
       role: 'user',
       content: text,
       timestamp: Date.now(),
-      contextAttached: attachedContext.length > 0,
+      contextAttached: context !== null,
+      contextLabel: label ?? undefined,
     }
-
+    const history = messages.filter((m) => m.id !== WELCOME_MESSAGE_ID && m.role !== 'system')
     setMessages((prev) => [...prev, userMsg])
     setInput('')
-    setStatus('loading')
     setErrorMsg(null)
 
-    // Note file and buffer context metadata if active file exists
-    const contextSummary = activeFilePath
-      ? ` referencing ${activeFilePath.split('/').pop()} (${activeFileLanguage || 'plaintext'}, ${activeFileContent?.length || 0} chars)`
-      : ''
+    if (!api || !provider) {
+      setErrorMsg(
+        !api
+          ? 'The AI assistant needs the Ajson Studio desktop app: API keys are stored and used only by the Electron main process, never in the browser.'
+          : `Unknown model "${selectedModel}".`
+      )
+      setStatus('error')
+      return
+    }
 
-    generationTimerRef.current = setTimeout(() => {
-      const assistantMsg: AiMessage = {
-        id: generateMessageId(),
-        role: 'assistant',
-        content: `I've analyzed your prompt regarding: "${text}"${contextSummary}.
+    const requestId = generateRequestId()
+    activeRequestIdRef.current = requestId
+    setStatus('loading')
 
-\`\`\`typescript
-// Generated patch chunk
-export function handleSpeculativeStream(chunk: string) {
-  console.log('[Ajson Speculative Engine] Emitting validated token chunk:', chunk);
-  return { status: 'healthy', applied: true };
-}
-\`\`\`
-
-All AST constraints pass with zero regression.`,
-        timestamp: Date.now(),
+    try {
+      const res = await api.sendMessage({
+        requestId,
+        providerId: provider,
+        modelId: selectedModel,
+        messages: [...history, userMsg],
+        context,
+      })
+      if (activeRequestIdRef.current !== requestId) {
+        return // cancelled or superseded
       }
-      setMessages((prev) => [...prev, assistantMsg])
-      setStatus('idle')
-    }, 1200)
+      activeRequestIdRef.current = null
+      if (res.success && res.message) {
+        setMessages((prev) => [...prev, { ...res.message as AiMessage, modelId: selectedModel }])
+        setStatus('idle')
+      } else {
+        setErrorMsg(res.error?.message ?? 'The AI request failed.')
+        setStatus('error')
+      }
+    } catch (err) {
+      if (activeRequestIdRef.current !== requestId) {
+        return
+      }
+      activeRequestIdRef.current = null
+      setErrorMsg(err instanceof Error ? err.message : 'The AI request failed.')
+      setStatus('error')
+    }
   }
 
   const removeContext = (ctx: string) => {
@@ -751,12 +788,6 @@ All AST constraints pass with zero regression.`,
             + @selection
           </button>
         )}
-        <button
-          onClick={() => setAttachedContext((prev) => [...prev, '@AstValidator.ts'])}
-          className="text-[10.5px] px-2 py-0.5 rounded-sm bg-[#252526] text-[#9DA3AE] hover:text-white border border-[#333333] transition-colors shrink-0"
-        >
-          + Add (@)
-        </button>
       </div>
 
       {/* Messages Stream */}
@@ -872,10 +903,15 @@ All AST constraints pass with zero regression.`,
                   onChange={(e) => setSelectedModel(e.target.value)}
                   className="bg-[#252526] hover:bg-[#2A2D2E] border border-[#333333] hover:border-[#007ACC] text-[#CCCCCC] text-[10.5px] pl-2 pr-5 py-0.5 rounded-md focus:outline-none font-sans cursor-pointer appearance-none transition-colors"
                 >
-                  <option value="gemini-3.8-flash">Gemini 3.8 Flash High</option>
-                  <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
-                  <option value="gpt-4o">GPT-4o</option>
-                  <option value="deepseek-r1">DeepSeek R1</option>
+                  {AI_PROVIDERS.map((p) => (
+                    <optgroup key={p.id} label={`${p.displayName}${config?.[p.id]?.configured ? '' : ' (no key)'}`}>
+                      {p.models.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.displayName}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
                 <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[#9DA3AE] pointer-events-none" />
               </div>

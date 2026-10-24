@@ -10,8 +10,6 @@ import {
   Save,
   Copy,
   ChevronRight,
-  Braces,
-  Sparkles,
   GitCompare,
   BookOpen,
   Split,
@@ -49,7 +47,6 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
   onNewTab,
   onOpenCodeExplain,
   onOpenDiffReview,
-  onOpenAiCodeGen,
   isSplitView = false,
   onToggleSplitView,
 }) => {
@@ -120,7 +117,7 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
 
   // Compute breadcrumbs path
   const breadcrumbSegments = React.useMemo(() => {
-    if (!activeTab) return ['quantum-mesh-core', 'Welcome']
+    if (!activeTab) return ['Welcome']
     const parts = activeTab.path.split(/[/\\]/)
     return parts
   }, [activeTab])
@@ -205,17 +202,6 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
                 </span>
               </React.Fragment>
             ))}
-            {activeTab.name.endsWith('.ts') && (
-              <>
-                <ChevronRight className="w-3 h-3 text-[#6E7681] shrink-0" />
-                <span className="text-[#9DA3AE] flex items-center space-x-1">
-                  <Braces className="w-3 h-3 text-[#007ACC]" />
-                  <span className="text-[#CCCCCC]">AgentCoordinator</span>
-                </span>
-                <ChevronRight className="w-3 h-3 text-[#6E7681] shrink-0" />
-                <span className="text-amber-400 font-medium">generatePatchStream()</span>
-              </>
-            )}
           </div>
 
           {/* Inline Action Controls */}
@@ -253,6 +239,7 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
               </button>
             )}
           </div>
+        </div>
       )}
 
       {/* Tab Context Menu */}

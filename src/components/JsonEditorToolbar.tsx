@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import {
-  Minimize2,
   Copy,
   Download,
   Upload,
@@ -10,17 +9,14 @@ import {
   ChevronRight,
   ChevronDown,
   Hash,
-  Sparkles,
 } from 'lucide-react'
 import {
   validateJson,
   formatJson,
   minifyJson,
-  computeJsonStats,
   findDuplicateKeys,
   type JsonValidationResult,
   type JsonStats,
-  type FormatOptions,
 } from '../utils/jsonUtils'
 
 export type JsonViewMode = 'raw' | 'tree' | 'stats'

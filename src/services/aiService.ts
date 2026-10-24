@@ -115,9 +115,9 @@ export const AI_PROVIDERS: AiProviderInfo[] = [
     requiresApiKey: true,
     documentationUrl: 'https://console.anthropic.com/keys',
     models: [
-      { id: 'claude-opus-4-5', displayName: 'Claude Opus 4.5', contextWindow: 200000, supportsStreaming: true },
-      { id: 'claude-sonnet-4-5', displayName: 'Claude Sonnet 4.5', contextWindow: 200000, supportsStreaming: true },
-      { id: 'claude-haiku-3-5', displayName: 'Claude Haiku 3.5', contextWindow: 200000, supportsStreaming: true },
+      { id: 'claude-opus-5-5', displayName: 'Claude Opus 5.5', contextWindow: 200000, supportsStreaming: true },
+      { id: 'claude-sonnet-5-5', displayName: 'Claude Sonnet 5.5', contextWindow: 200000, supportsStreaming: true },
+      { id: 'claude-haiku-5-5', displayName: 'Claude Haiku 5.5', contextWindow: 200000, supportsStreaming: true },
     ],
   },
   {

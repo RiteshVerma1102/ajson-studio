@@ -2,6 +2,8 @@ import { app, BrowserWindow, shell } from 'electron'
 import * as path from 'path'
 import { registerIpcHandlers } from '../ipc/handlers'
 import { registerAiIpcHandlers } from '../ipc/aiHandlers'
+import { registerTerminalIpcHandlers } from '../ipc/terminalHandlers'
+import { getActiveProjectRoot } from '../ipc/handlers'
 
 // Set application name
 app.name = 'Ajson Studio'
@@ -35,6 +37,9 @@ function createWindow(): void {
 
   // Register AI IPC handlers (credentials stay in main process)
   registerAiIpcHandlers()
+
+  // Terminal + git (commands are confined to the open project folder)
+  registerTerminalIpcHandlers(mainWindow, getActiveProjectRoot)
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()

@@ -26,6 +26,28 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
   onToggleAiPanel,
   onOpenSettings,
 }) => {
+  // Real count of changed files from `git status` (desktop app only)
+  const [gitChangeCount, setGitChangeCount] = React.useState(0)
+  React.useEffect(() => {
+    const api = window.ajsonAPI?.git
+    if (!api) {
+      return
+    }
+    let alive = true
+    const poll = () => {
+      api
+        .status()
+        .then((st) => alive && setGitChangeCount(st.isRepo ? st.changes.length : 0))
+        .catch(() => alive && setGitChangeCount(0))
+    }
+    poll()
+    const t = setInterval(poll, 5000)
+    return () => {
+      alive = false
+      clearInterval(t)
+    }
+  }, [])
+
   const primaryActivities: Array<{
     id: ActivityView
     label: string
@@ -34,7 +56,7 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
   }> = [
     { id: 'explorer', label: 'Explorer (Ctrl+Shift+E)', icon: <Files className="w-5 h-5" /> },
     { id: 'search', label: 'Search (Ctrl+Shift+F)', icon: <Search className="w-5 h-5" /> },
-    { id: 'git', label: 'Source Control (Ctrl+Shift+G)', icon: <GitBranch className="w-5 h-5" />, badge: 19 },
+    { id: 'git', label: 'Source Control (Ctrl+Shift+G)', icon: <GitBranch className="w-5 h-5" />, badge: gitChangeCount > 0 ? gitChangeCount : undefined },
     { id: 'jsontools', label: 'JSON Tools & Suite', icon: <FileJson className="w-5 h-5" /> },
     { id: 'extensions', label: 'Extensions (Ctrl+Shift+X)', icon: <Boxes className="w-5 h-5" /> },
   ]

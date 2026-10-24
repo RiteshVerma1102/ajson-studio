@@ -1695,7 +1695,7 @@ export const App: React.FC = () => {
       <ModelSettingsModal
         isOpen={isModelSettingsOpen}
         onClose={() => setIsModelSettingsOpen(false)}
-        onSave={() => showToast('Model provider settings updated', 'success')}
+        onSave={(c) => showToast(c.action === 'saved' ? 'API key saved' : 'API key removed', 'success')}
       />
 
       {/* Global Notification Toast */}

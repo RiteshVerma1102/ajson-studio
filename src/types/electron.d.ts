@@ -137,7 +137,7 @@ export interface WorkspaceState {
   activeTabPath: string | null
   sidebarOpen: boolean
   sidebarWidth?: number
-  activeActivityView: 'explorer' | 'search' | 'git' | 'extensions'
+  activeActivityView: 'explorer' | 'search' | 'git' | 'extensions' | 'jsontools'
   bottomPanelOpen: boolean
   bottomPanelHeight?: number
   activeBottomTab: 'terminal' | 'problems' | 'output' | 'tests'
@@ -180,6 +180,10 @@ export interface AiMessage {
   content: string
   timestamp: number
   contextAttached?: boolean
+  /** Chip label shown for the context sent with this message (UI only) */
+  contextLabel?: string
+  /** Model that produced an assistant message (UI only) */
+  modelId?: string
 }
 
 export interface AiCodeContext {
@@ -269,6 +273,14 @@ export interface AjsonAPI {
     rename: (oldPath: string, newName: string) => Promise<FileOpResult>
     delete: (targetPath: string) => Promise<FileOpResult>
   }
+  terminal: {
+    run: (req: { id: string; command: string; cwd?: string; timeoutMs?: number }) => Promise<{ ok: boolean; error?: string }>
+    kill: (id: string) => Promise<{ ok: boolean }>
+    onEvent: (cb: (event: TerminalEvent) => void) => () => void
+  }
+  git: {
+    status: () => Promise<GitStatusResult>
+  }
   ai: {
     getConfig: () => Promise<AiConfigResult>
     saveApiKey: (providerId: string, apiKey: string) => Promise<{ success: boolean; error?: string }>
@@ -276,6 +288,20 @@ export interface AjsonAPI {
     sendMessage: (req: AiSendMessageRequest) => Promise<AiSendMessageResult>
     cancelRequest: (requestId: string) => Promise<{ success: boolean }>
   }
+}
+
+export type TerminalEvent =
+  | { id: string; type: 'stdout'; data: string }
+  | { id: string; type: 'stderr'; data: string }
+  | { id: string; type: 'exit'; code: number | null; signal: string | null; reason: 'completed' | 'killed' | 'timeout' | 'error'; error?: string }
+
+export interface GitStatusResult {
+  isRepo: boolean
+  branch: string | null
+  ahead: number
+  behind: number
+  changes: { path: string; index: string; workTree: string }[]
+  error?: string
 }
 
 declare global {

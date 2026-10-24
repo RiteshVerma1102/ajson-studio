@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { GitBranch, Sparkles, CheckCheck } from 'lucide-react'
+import { GitBranch, Sparkles } from 'lucide-react'
 import { SupportedLanguage, CursorPosition } from '../types/editor'
 
 interface StatusBarProps {
@@ -65,10 +65,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       {/* Left items */}
       <div className="flex items-center space-x-2 h-full">
         {/* Antigravity Blue Branch Block */}
-        <div className="flex items-center space-x-1 px-2.5 h-full bg-[#007ACC] text-white hover:bg-[#0098FF] cursor-pointer font-sans transition-colors">
+        <div
+          className="flex items-center space-x-1 px-2.5 h-full bg-[#007ACC] text-white font-sans"
+          title="Git integration is not connected yet"
+        >
           <GitBranch className="w-3 h-3 text-white" />
-          <span className="font-medium text-[11px]">feature/json-tools-ui*</span>
-          <span className="text-white/80 text-[10px] ml-1">↻ 0↓ 0↑</span>
+          <span className="font-medium text-[11px]">No repository</span>
         </div>
 
         {/* Diagnostics */}
@@ -103,7 +105,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
             }}
             className="font-medium text-[10.5px] hover:text-white"
           >
-            Gemini 3.8 Flash High
+            {isAiConfigured ? 'AI: ready' : 'AI: not configured'}
           </span>
         </button>
       </div>
@@ -118,13 +120,6 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         <span className="hover:text-white cursor-default">LF</span>
         <span className="hover:text-white text-[#CCCCCC] font-medium cursor-pointer">
           {formatLanguageName(language)}
-        </span>
-        <span className="hover:text-white cursor-pointer">
-          Antigravity - Settings
-        </span>
-        <span className="flex items-center space-x-0.5 text-emerald-400 cursor-pointer">
-          <CheckCheck className="w-3 h-3 text-emerald-400" />
-          <span>Prettier</span>
         </span>
       </div>
     </footer>

@@ -45,6 +45,19 @@ const ajsonAPI = {
     rename: (oldPath: string, newName: string) => ipcRenderer.invoke('fs:rename', oldPath, newName),
     delete: (targetPath: string) => ipcRenderer.invoke('fs:delete', targetPath),
   },
+  terminal: {
+    run: (req: { id: string; command: string; cwd?: string; timeoutMs?: number }) =>
+      ipcRenderer.invoke('terminal:run', req),
+    kill: (id: string) => ipcRenderer.invoke('terminal:kill', id),
+    onEvent: (cb: (event: unknown) => void) => {
+      const listener = (_e: unknown, event: unknown) => cb(event)
+      ipcRenderer.on('terminal:event', listener)
+      return () => ipcRenderer.removeListener('terminal:event', listener)
+    },
+  },
+  git: {
+    status: () => ipcRenderer.invoke('git:status'),
+  },
   ai: {
     getConfig: () => ipcRenderer.invoke('ai:getConfig'),
     saveApiKey: (providerId: string, apiKey: string) =>

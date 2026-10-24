@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Minus,
   Square,
@@ -6,12 +6,9 @@ import {
   Sidebar as SidebarIcon,
   PanelBottom,
   Sparkles,
-  Layers,
   Play,
   Search,
   GitCompare,
-  BookOpen,
-  Sliders,
 } from 'lucide-react'
 
 interface HeaderProps {
@@ -43,8 +40,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleBottomPanel,
   aiPanelOpen,
   onToggleAiPanel,
-  activeFileName: _activeFileName,
-  projectName = 'quantum-mesh-core',
+  activeFileName,
+  projectName = 'No folder open',
   onCloseWindow,
   onOpenCommandPalette,
   onRunProject,
@@ -66,6 +63,60 @@ export const Header: React.FC<HeaderProps> = ({
     }
   }, [])
 
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const menuRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!openMenu) {
+      return
+    }
+    const onDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenu(null)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenMenu(null)
+      }
+    }
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [openMenu])
+
+  interface MenuItem {
+    label: string
+    shortcut?: string
+    action?: () => void
+  }
+  const menus: { label: string; items: MenuItem[] }[] = [
+    { label: 'File', items: [{ label: 'Settings', action: onOpenSettings }, { label: 'Close Window', action: () => handleClose() }] },
+    { label: 'Edit', items: [{ label: 'Command Palette…', shortcut: 'Ctrl+Shift+P', action: onOpenCommandPalette }] },
+    { label: 'Selection', items: [{ label: 'Review Diff Changes', action: onOpenDiffReview }, { label: 'Multi-file Edits…', action: onOpenMultiFileEdits }] },
+    {
+      label: 'View',
+      items: [
+        { label: sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar', shortcut: 'Ctrl+B', action: onToggleSidebar },
+        { label: bottomPanelOpen ? 'Hide Panel' : 'Show Panel', shortcut: 'Ctrl+J', action: onToggleBottomPanel },
+        { label: aiPanelOpen ? 'Hide AI Assistant' : 'Show AI Assistant', shortcut: 'Ctrl+L', action: onToggleAiPanel },
+      ],
+    },
+    { label: 'Go', items: [{ label: 'Quick Open…', shortcut: 'Ctrl+P', action: onOpenCommandPalette }] },
+    { label: 'Run', items: [{ label: 'Run Project', shortcut: 'F5', action: onRunProject }] },
+    { label: 'Terminal', items: [{ label: bottomPanelOpen ? 'Hide Terminal Panel' : 'Show Terminal Panel', action: onToggleBottomPanel }] },
+    {
+      label: 'Help',
+      items: [
+        { label: 'AI Model Settings…', action: onOpenModelSettings },
+        { label: 'Explain Code with AI…', action: onOpenCodeExplain },
+      ],
+    },
+  ]
+
   const handleMinimize = () => {
     window.ajsonAPI?.window.minimize()
   }
@@ -86,7 +137,6 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-  return (
     <header className="window-drag-region h-9 bg-[#181818] border-b border-[#333333] flex items-center justify-between px-2.5 select-none z-50 text-xs text-[#CCCCCC]">
       {/* Left: App Identity & Main Menus */}
       <div className="window-no-drag flex items-center space-x-2">
@@ -100,14 +150,40 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Standard IDE Menu Bar */}
-        <nav className="flex items-center space-x-0.5 text-[#CCCCCC] text-[11.5px]">
-          {['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'].map((item) => (
-            <button
-              key={item}
-              className="px-2 py-0.5 rounded-sm hover:bg-[#2A2D2E] hover:text-white transition-colors"
-            >
-              {item}
-            </button>
+        <nav ref={menuRef} className="flex items-center space-x-0.5 text-[#CCCCCC] text-[11.5px]" aria-label="Main menu">
+          {menus.map((menu) => (
+            <div key={menu.label} className="relative">
+              <button
+                onClick={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
+                onMouseEnter={() => openMenu && setOpenMenu(menu.label)}
+                aria-haspopup="menu"
+                aria-expanded={openMenu === menu.label}
+                className={`px-2 py-0.5 rounded-sm hover:bg-[#2A2D2E] hover:text-white transition-colors ${
+                  openMenu === menu.label ? 'bg-[#2A2D2E] text-white' : ''
+                }`}
+              >
+                {menu.label}
+              </button>
+              {openMenu === menu.label && (
+                <div role="menu" className="absolute left-0 top-full mt-0.5 min-w-[220px] bg-[#1F1F1F] border border-[#333333] rounded-md shadow-xl py-1 z-[60]">
+                  {menu.items.map((item) => (
+                    <button
+                      key={item.label}
+                      role="menuitem"
+                      disabled={!item.action}
+                      onClick={() => {
+                        setOpenMenu(null)
+                        item.action?.()
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1 text-left text-[11.5px] text-[#CCCCCC] hover:bg-[#04395E] hover:text-white disabled:opacity-40 disabled:hover:bg-transparent"
+                    >
+                      <span>{item.label}</span>
+                      {item.shortcut && <span className="text-[10px] text-[#8B8B8B] ml-6">{item.shortcut}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
       </div>
