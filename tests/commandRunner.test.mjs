@@ -93,7 +93,7 @@ test('cancellation kills a long-running process and reports reason=killed', asyn
   assert.equal(runner.runningCount(), 0)
 })
 
-test('cancellation kills the whole process tree (child of the shell)', async () => {
+test('cancellation kills the whole process tree (child of the shell)', { skip: process.platform === 'win32' ? 'Unix sh process tree test not applicable on Windows' : false }, async () => {
   const runner = new CommandRunner()
   const marker = path.join(root, 'tree-pid')
   const p = runToExit(runner, { id: 't', command: `sh -c 'echo $$ > "${marker}"; sleep 30' & wait`, cwd: root, projectRoot: root })
