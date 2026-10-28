@@ -15,6 +15,7 @@ import { AiCodeGenOverlay } from './components/AiCodeGenOverlay'
 import { CodeExplanationModal } from './components/CodeExplanationModal'
 import { MultiFileEditsModal } from './components/MultiFileEditsModal'
 import { ModelSettingsModal } from './components/ModelSettingsModal'
+import { JsonStudio } from './components/JsonStudio'
 import {
   EditorTab,
   ActivityView,
@@ -1226,34 +1227,41 @@ export const App: React.FC = () => {
           />
         }
         editorTabs={
-          <EditorTabs
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onSelectTab={setActiveTabId}
-            onCloseTab={handleCloseTab}
-            onCloseOtherTabs={handleCloseOtherTabs}
-            onCloseTabsToRight={handleCloseTabsToRight}
-            onCloseAllTabs={handleCloseAllTabs}
-            onSaveTab={(tabId) => {
-              const target = tabs.find((t) => t.id === tabId)
-              if (target) {
-                if (target.path.startsWith('untitled:')) {
-                  handleSaveAs()
-                } else {
-                  handleSave()
+          /* Hide editor tabs when JSON Studio is active — it has its own doc management */
+          activeActivityView === 'jsontools' ? null : (
+            <EditorTabs
+              tabs={tabs}
+              activeTabId={activeTabId}
+              onSelectTab={setActiveTabId}
+              onCloseTab={handleCloseTab}
+              onCloseOtherTabs={handleCloseOtherTabs}
+              onCloseTabsToRight={handleCloseTabsToRight}
+              onCloseAllTabs={handleCloseAllTabs}
+              onSaveTab={(tabId) => {
+                const target = tabs.find((t) => t.id === tabId)
+                if (target) {
+                  if (target.path.startsWith('untitled:')) {
+                    handleSaveAs()
+                  } else {
+                    handleSave()
+                  }
                 }
-              }
-            }}
-            onSaveTabAs={() => handleSaveAs()}
-            onNewTab={handleNewTab}
-            onOpenCodeExplain={() => setIsCodeExplainOpen(true)}
-            onOpenDiffReview={() => setIsDiffReviewOpen(true)}
-            onOpenAiCodeGen={() => setIsAiCodeGenOpen(true)}
-            isSplitView={isSplitView}
-            onToggleSplitView={() => setIsSplitView((prev) => !prev)}
-          />
+              }}
+              onSaveTabAs={() => handleSaveAs()}
+              onNewTab={handleNewTab}
+              onOpenCodeExplain={() => setIsCodeExplainOpen(true)}
+              onOpenDiffReview={() => setIsDiffReviewOpen(true)}
+              onOpenAiCodeGen={() => setIsAiCodeGenOpen(true)}
+              isSplitView={isSplitView}
+              onToggleSplitView={() => setIsSplitView((prev) => !prev)}
+            />
+          )
         }
         editor={
+          /* JSON Studio takes over the entire editor area when active */
+          activeActivityView === 'jsontools' ? (
+            <JsonStudio />
+          ) :
           activeTab ? (
             <div className="w-full h-full flex flex-col overflow-hidden">
               {activeTab.hasExternalChange && (
