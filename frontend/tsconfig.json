@@ -4,7 +4,9 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@ajson/contracts": ["../contracts/src/index.ts"],
+      "@ajson/contracts/testing": ["../contracts/src/testing/index.ts"]
     },
     "types": ["vitest/globals", "vite/client"]
   },

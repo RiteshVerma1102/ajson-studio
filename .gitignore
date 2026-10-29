@@ -30,6 +30,9 @@ bin/
 coverage/
 *.lcov
 .nyc_output/
+test-results/
+playwright-report/
+*.tsbuildinfo
 
 # Logs
 logs/

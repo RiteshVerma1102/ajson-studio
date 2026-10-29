@@ -1,0 +1,326 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-0);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  background-color: var(--bg-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--fg-0);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  flex: 1;
+  min-height: 0;
+}
+
+.missionsCol {
+  background-color: var(--bg-1);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.colHeader {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.missionCards {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.missionCard {
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  background-color: var(--bg-1);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 140ms ease;
+}
+
+.missionCard:hover {
+  background-color: var(--bg-2);
+}
+
+.selectedCard {
+  background-color: var(--bg-2);
+  border-left: 3px solid var(--accent);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.cardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--fg-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardGoal {
+  font-size: var(--font-size-2xs);
+  color: var(--fg-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.timelineCol {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-0);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.missionBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--bg-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bannerTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--fg-0);
+}
+
+.bannerGoal {
+  font-size: var(--font-size-sm);
+  color: var(--fg-2);
+  margin-top: 4px;
+}
+
+.modelTag {
+  font-family: var(--font-family-code);
+  font-size: 11px;
+  color: var(--accent);
+  background-color: rgba(0, 242, 254, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.eventsArea {
+  padding: var(--space-4) var(--space-6);
+  flex: 1;
+}
+
+.eventsTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-3);
+  margin-bottom: var(--space-3);
+}
+
+.timelineList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.eventRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+}
+
+.eventTime {
+  font-family: var(--font-family-code);
+  font-size: 11px;
+  color: var(--fg-3);
+  min-width: 60px;
+}
+
+.thoughtBox {
+  flex: 1;
+  background-color: var(--bg-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  color: var(--fg-1);
+}
+
+.thoughtLabel {
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: 6px;
+}
+
+.toolBox {
+  flex: 1;
+  background-color: var(--bg-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  color: var(--fg-1);
+}
+
+.toolLabel {
+  font-weight: 600;
+  color: var(--color-warning);
+  margin-right: 6px;
+}
+
+.resolvedBox {
+  flex: 1;
+  background-color: rgba(56, 249, 215, 0.1);
+  border: 1px solid rgba(56, 249, 215, 0.3);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  color: var(--color-success);
+}
+
+.emptyTimeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--fg-3);
+}
+
+.approvalsCol {
+  background-color: var(--bg-1);
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.approvalsHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-0);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.approvalList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.approvalCard {
+  background-color: var(--bg-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.approvalTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kindBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-warning);
+  background-color: rgba(255, 170, 0, 0.15);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.approvalTime {
+  font-size: 10px;
+  color: var(--fg-3);
+}
+
+.approvalTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--fg-0);
+}
+
+.approvalDesc {
+  font-size: var(--font-size-2xs);
+  color: var(--fg-2);
+  line-height: 1.4;
+}
+
+.approvalTarget {
+  font-family: var(--font-family-code);
+  font-size: 10px;
+  background-color: var(--bg-3);
+  padding: 3px 6px;
+  border-radius: 2px;
+  color: var(--accent);
+}
+
+.approvalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.emptyApprovals {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--fg-3);
+  font-size: var(--font-size-xs);
+}

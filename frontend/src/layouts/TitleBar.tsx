@@ -9,7 +9,7 @@ import { ViewSwitcher } from './ViewSwitcher';
 import styles from './TitleBar.module.css';
 
 export const TitleBar: React.FC = () => {
-  const { theme, setTheme, toggleSidebar, toggleRightPanel, toggleBottomPanel } =
+  const { theme, setTheme, toggleSidebar, toggleRightPanel, toggleBottomPanel, setQuickOpen } =
     useLayoutStore();
   const { openPalette } = useCommandStore();
 
@@ -17,7 +17,7 @@ export const TitleBar: React.FC = () => {
     { id: 'new-file', label: 'New File', shortcut: 'Ctrl+N' },
     { id: 'new-window', label: 'New Window', shortcut: 'Ctrl+Shift+N' },
     { id: 'd1', label: '', isDivider: true },
-    { id: 'open-file', label: 'Open File...', shortcut: 'Ctrl+O' },
+    { id: 'open-file', label: 'Quick Open File...', shortcut: 'Ctrl+P', onClick: () => setQuickOpen(true) },
     { id: 'open-folder', label: 'Open Folder...' },
     { id: 'd2', label: '', isDivider: true },
     { id: 'save', label: 'Save', shortcut: 'Ctrl+S' },
@@ -95,15 +95,16 @@ export const TitleBar: React.FC = () => {
       <div className={styles.center}>
         <button
           className={styles.searchTrigger}
-          onClick={openPalette}
-          aria-label="Open Command Palette"
+          onClick={() => setQuickOpen(true)}
+          aria-label="Quick Open Files (Ctrl+P)"
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Search size={13} />
-            <span>Search files, commands, or agents...</span>
+            <span>Search files (Ctrl+P) or commands...</span>
           </span>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <Kbd>F1</Kbd>
+            <Kbd>Ctrl+P</Kbd>
+            <Kbd onClick={(e) => { e.stopPropagation(); openPalette(); }}>F1</Kbd>
           </div>
         </button>
       </div>

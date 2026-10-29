@@ -1,0 +1,140 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-1);
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.branchBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--fg-0);
+}
+
+.commitBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.commitInput {
+  width: 100%;
+  background-color: var(--bg-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--fg-0);
+  font-size: var(--font-size-xs);
+  padding: 6px var(--space-2);
+  resize: vertical;
+  outline: none;
+}
+
+.commitInput:focus {
+  border-color: var(--accent);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px var(--space-3);
+  background-color: var(--bg-2);
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-2);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge {
+  font-size: 10px;
+  background-color: var(--bg-3);
+  color: var(--fg-1);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+}
+
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-3);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.fileRow:hover {
+  background-color: var(--bg-2);
+}
+
+.filePath {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg-1);
+}
+
+.statusPill {
+  font-family: var(--font-family-code);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.statusStaged {
+  background-color: rgba(56, 249, 215, 0.15);
+  color: var(--color-success);
+}
+
+.statusWorking {
+  background-color: rgba(255, 170, 0, 0.15);
+  color: var(--color-warning);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.emptyNotice {
+  font-size: var(--font-size-2xs);
+  color: var(--fg-3);
+  padding: var(--space-3);
+  text-align: center;
+}

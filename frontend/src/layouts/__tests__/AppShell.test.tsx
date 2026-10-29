@@ -16,7 +16,7 @@ describe('AppShell layout', () => {
     expect(screen.getByRole('complementary', { name: /activity bar/i })).toBeInTheDocument();
     expect(screen.getByRole('contentinfo', { name: /status bar/i })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /bottom panel/i })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /ai copilot panel/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /ai assistant panel/i })).toBeInTheDocument();
   });
 
   it('renders Mission Control when activeView is manager', () => {
@@ -24,7 +24,7 @@ describe('AppShell layout', () => {
     render(<AppShell />);
 
     expect(
-      screen.getByText(/mission control — agents dashboard/i)
+      screen.getByText(/mission control/i)
     ).toBeInTheDocument();
   });
 });

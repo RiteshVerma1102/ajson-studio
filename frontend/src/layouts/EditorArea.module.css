@@ -1,106 +1,61 @@
 .editorArea {
-  height: 100%;
-  background-color: var(--bg-0);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-0);
   overflow: hidden;
-  user-select: none;
 }
 
-.tabBar {
-  height: 35px;
+.topBar {
+  display: flex;
+  align-items: center;
   background-color: var(--bg-1);
   border-bottom: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  overflow-x: auto;
 }
 
-.tab {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-3);
-  height: 100%;
-  font-size: var(--text-xs);
-  color: var(--fg-2);
-  border-right: 1px solid var(--color-border);
-  background-color: var(--bg-1);
-  cursor: pointer;
-  border-top: 2px solid transparent;
-}
-
-.tab.active {
-  background-color: var(--bg-0);
-  color: var(--fg-0);
-  border-top-color: var(--accent);
-  font-weight: 500;
+.maximizeAction {
+  padding-right: var(--space-2);
 }
 
 .breadcrumbs {
-  height: 24px;
-  padding: 0 var(--space-3);
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-xs);
-  color: var(--fg-3);
-  border-bottom: 1px solid var(--color-border);
+  gap: 4px;
+  padding: 0 var(--space-3);
+  height: 24px;
   background-color: var(--bg-0);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-2xs);
+  color: var(--fg-3);
 }
 
 .stage {
   flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8);
-  overflow-y: auto;
+  position: relative;
 }
 
-.welcomeCard {
-  max-width: 500px;
+.editorContainer {
+  display: flex;
+  height: 100%;
   width: 100%;
+}
+
+.primaryEditor {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+
+.splitContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-4);
 }
 
-.logoIcon {
-  width: 64px;
-  height: 64px;
-  padding: 12px;
-  border-radius: var(--radius-xl);
-  background: radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%);
-  border: 1px solid var(--color-border);
-}
-
-.actionsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
-  width: 100%;
-  margin-top: var(--space-2);
-}
-
-.actionButton {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background-color: var(--bg-1);
-  color: var(--fg-1);
-  font-size: var(--text-sm);
-  text-align: left;
-  transition: all var(--duration-fast) var(--ease-standard);
-}
-
-.actionButton:hover {
-  background-color: var(--bg-2);
-  border-color: var(--color-border-hover);
-  color: var(--fg-0);
+.secondaryEditor {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  border-left: 1px solid var(--color-border);
 }

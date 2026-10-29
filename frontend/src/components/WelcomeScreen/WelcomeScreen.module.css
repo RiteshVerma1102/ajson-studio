@@ -1,0 +1,175 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-8) var(--space-4);
+  background-color: var(--bg-0);
+  overflow-y: auto;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.logo {
+  margin-bottom: var(--space-3);
+  filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.35));
+  animation: pulseLogo 4s infinite alternate ease-in-out;
+}
+
+@keyframes pulseLogo {
+  from {
+    filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.25));
+  }
+  to {
+    filter: drop-shadow(0 0 24px rgba(0, 242, 254, 0.5));
+  }
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--fg-0);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: var(--font-size-base);
+  color: var(--fg-3);
+  margin-top: var(--space-2);
+  max-width: 520px;
+}
+
+.tourPrompt {
+  margin-top: var(--space-4);
+}
+
+.tourBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 14px;
+  background-color: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: var(--radius-full);
+  color: var(--accent);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.tourBtn:hover {
+  background-color: rgba(0, 242, 254, 0.16);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 980px;
+}
+
+.card {
+  background-color: var(--bg-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--fg-0);
+  margin-bottom: var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--bg-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.actionItem:hover {
+  border-color: var(--color-border);
+  background-color: var(--bg-3);
+  transform: translateX(2px);
+}
+
+.actionText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.actionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--fg-1);
+}
+
+.actionDesc {
+  font-size: var(--font-size-2xs);
+  color: var(--fg-3);
+  margin-top: 2px;
+}
+
+.timeTag {
+  font-size: var(--font-size-2xs);
+  color: var(--fg-3);
+}
+
+.shortcutsBox {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--bg-0);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.shortcutsTitle {
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.shortcutRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--fg-2);
+}

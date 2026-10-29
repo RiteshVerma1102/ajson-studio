@@ -1,0 +1,255 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-1);
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  color: var(--fg-0);
+  font-size: var(--text-xs);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--bg-2);
+}
+
+.configSelect {
+  flex: 1;
+  background-color: var(--bg-1);
+  border: 1px solid var(--color-border);
+  color: var(--fg-0);
+  font-size: var(--text-xs);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.configSelect:focus {
+  border-color: var(--accent);
+}
+
+.actionControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctrlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--fg-1);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.ctrlBtn:hover:not(:disabled) {
+  background-color: var(--color-hover);
+  color: var(--fg-0);
+}
+
+.ctrlBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.playBtn {
+  background-color: var(--accent);
+  color: #000;
+  font-weight: bold;
+}
+
+.playBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  color: #000;
+}
+
+.stopBtn {
+  color: var(--color-danger);
+}
+
+.statusBanner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--space-3);
+  background-color: var(--color-active);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-2xs);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-success);
+}
+
+.statusDotActive {
+  background-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.section {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px var(--space-3);
+  background-color: var(--bg-1);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fg-2);
+}
+
+.sectionHeader:hover {
+  color: var(--fg-0);
+}
+
+.sectionContent {
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.varRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+}
+
+.varRow:hover {
+  background-color: var(--color-hover);
+}
+
+.varName {
+  color: var(--color-info);
+}
+
+.varVal {
+  color: var(--color-warning);
+}
+
+.bpRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.bpRow:hover {
+  background-color: var(--color-hover);
+}
+
+.bpDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-danger);
+  flex-shrink: 0;
+}
+
+.bpDotInactive {
+  background-color: var(--fg-3);
+}
+
+.bpFile {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--fg-1);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bpLine {
+  color: var(--fg-2);
+  font-size: var(--text-2xs);
+}
+
+.stackRow {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.stackRow:hover {
+  background-color: var(--color-hover);
+}
+
+.stackActive {
+  background-color: var(--color-active);
+  border-left: 2px solid var(--accent);
+}
+
+.stackFunc {
+  font-weight: 600;
+  color: var(--fg-0);
+  font-size: var(--text-2xs);
+}
+
+.stackLoc {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-2);
+}
+
+.watchInputRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.watchInput {
+  flex: 1;
+  background-color: var(--bg-2);
+  border: 1px solid var(--color-border);
+  color: var(--fg-0);
+  font-size: var(--text-2xs);
+  font-family: var(--font-mono);
+  padding: 3px 6px;
+  border-radius: var(--radius-xs);
+  outline: none;
+}
+
+.watchInput:focus {
+  border-color: var(--accent);
+}

@@ -1,87 +1,105 @@
-import React from 'react';
-import { Terminal, AlertCircle, FileText, ChevronDown, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Terminal,
+  AlertCircle,
+  FileText,
+  ChevronDown,
+  X,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 import { useLayoutStore } from '../state/layoutStore';
+import { diagnosticsService } from '../services';
 import { IconButton } from '../components/IconButton/IconButton';
 import { Badge } from '../components/Badge/Badge';
+import { PanelErrorBoundary } from '../components/ErrorBoundary/PanelErrorBoundary';
+import { TerminalPanel } from '../panels/terminal/TerminalPanel';
+import { OutputPanel } from '../panels/output/OutputPanel';
+import { ProblemsPanel } from '../panels/problems/ProblemsPanel';
 import styles from './BottomPanel.module.css';
 
 export const BottomPanel: React.FC = () => {
-  const { activeBottomTab, setActiveBottomTab, toggleBottomPanel } = useLayoutStore();
+  const {
+    activeBottomTab,
+    setActiveBottomTab,
+    toggleBottomPanel,
+    maximizedPanel,
+    toggleMaximizePanel,
+  } = useLayoutStore();
+
+  const [problemCount, setProblemCount] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      setProblemCount(diagnosticsService.list().length);
+    };
+    updateCount();
+    const unbind = diagnosticsService.onDidChange(updateCount);
+    return () => unbind();
+  }, []);
+
+  const isMaximized = maximizedPanel === 'bottom';
 
   return (
-    <div className={styles.bottomPanel} role="region" aria-label="Bottom Panel">
-      <div className={styles.header}>
-        <div className={styles.tabs} role="tablist">
-          <button
-            role="tab"
-            aria-selected={activeBottomTab === 'terminal'}
-            className={`${styles.tab} ${activeBottomTab === 'terminal' ? styles.active : ''}`}
-            onClick={() => setActiveBottomTab('terminal')}
-          >
-            <Terminal size={14} />
-            <span>Terminal</span>
-          </button>
+    <PanelErrorBoundary name="Bottom Panel">
+      <div className={styles.bottomPanel} role="region" aria-label="Bottom Panel">
+        <div className={styles.header}>
+          <div className={styles.tabs} role="tablist">
+            <button
+              role="tab"
+              aria-selected={activeBottomTab === 'terminal'}
+              className={`${styles.tab} ${activeBottomTab === 'terminal' ? styles.active : ''}`}
+              onClick={() => setActiveBottomTab('terminal')}
+            >
+              <Terminal size={14} />
+              <span>Terminal</span>
+            </button>
 
-          <button
-            role="tab"
-            aria-selected={activeBottomTab === 'output'}
-            className={`${styles.tab} ${activeBottomTab === 'output' ? styles.active : ''}`}
-            onClick={() => setActiveBottomTab('output')}
-          >
-            <FileText size={14} />
-            <span>Output</span>
-          </button>
+            <button
+              role="tab"
+              aria-selected={activeBottomTab === 'output'}
+              className={`${styles.tab} ${activeBottomTab === 'output' ? styles.active : ''}`}
+              onClick={() => setActiveBottomTab('output')}
+            >
+              <FileText size={14} />
+              <span>Output</span>
+            </button>
 
-          <button
-            role="tab"
-            aria-selected={activeBottomTab === 'problems'}
-            className={`${styles.tab} ${activeBottomTab === 'problems' ? styles.active : ''}`}
-            onClick={() => setActiveBottomTab('problems')}
-          >
-            <AlertCircle size={14} />
-            <span>Problems</span>
-            <Badge variant="default">0</Badge>
-          </button>
+            <button
+              role="tab"
+              aria-selected={activeBottomTab === 'problems'}
+              className={`${styles.tab} ${activeBottomTab === 'problems' ? styles.active : ''}`}
+              onClick={() => setActiveBottomTab('problems')}
+            >
+              <AlertCircle size={14} />
+              <span>Problems</span>
+              <Badge variant={problemCount > 0 ? 'warning' : 'default'}>{problemCount}</Badge>
+            </button>
+          </div>
+
+          <div className={styles.actions}>
+            <IconButton
+              label={isMaximized ? 'Restore Panel' : 'Maximize Panel'}
+              size="sm"
+              onClick={() => toggleMaximizePanel('bottom')}
+            >
+              {isMaximized ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            </IconButton>
+            <IconButton label="Minimize Panel" size="sm" onClick={toggleBottomPanel}>
+              <ChevronDown size={14} />
+            </IconButton>
+            <IconButton label="Close Panel" size="sm" onClick={toggleBottomPanel}>
+              <X size={14} />
+            </IconButton>
+          </div>
         </div>
 
-        <div className={styles.actions}>
-          <IconButton label="Minimize Panel" size="sm" onClick={toggleBottomPanel}>
-            <ChevronDown size={14} />
-          </IconButton>
-          <IconButton label="Close Panel" size="sm" onClick={toggleBottomPanel}>
-            <X size={14} />
-          </IconButton>
+        <div className={styles.content}>
+          {activeBottomTab === 'terminal' && <TerminalPanel />}
+          {activeBottomTab === 'output' && <OutputPanel />}
+          {activeBottomTab === 'problems' && <ProblemsPanel />}
         </div>
       </div>
-
-      <div className={styles.content}>
-        {activeBottomTab === 'terminal' && (
-          <div className={styles.terminalOutput}>
-            <div>[Ajson Studio Integrated Terminal — Phase 1 Shell Initialized]</div>
-            <div>
-              <span className={styles.prompt}>ajson-studio@desktop</span>:
-              <span style={{ color: 'var(--color-info)' }}>~/frontend</span>$ npm run dev
-            </div>
-            <div style={{ color: 'var(--color-success)', marginTop: '4px' }}>
-              ✓ Vite dev server ready on http://localhost:3000
-            </div>
-          </div>
-        )}
-
-        {activeBottomTab === 'output' && (
-          <div className={styles.terminalOutput}>
-            [Ajson Studio Task Output]
-            {"\n"}Language Server Protocol (LSP) connection ready.
-            {"\n"}Ready for agent logs and compilation output.
-          </div>
-        )}
-
-        {activeBottomTab === 'problems' && (
-          <div style={{ color: 'var(--fg-3)', fontSize: '13px', padding: '12px' }}>
-            No problems have been detected in the workspace.
-          </div>
-        )}
-      </div>
-    </div>
+    </PanelErrorBoundary>
   );
 };

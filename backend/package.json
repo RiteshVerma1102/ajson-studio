@@ -2,12 +2,24 @@
   "name": "@ajson-studio/backend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Ajson Studio Backend Services & Tool Execution",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "build": "echo \"[Backend] Stub build\" && exit 0",
-    "typecheck": "echo \"[Backend] Stub typecheck\" && exit 0",
-    "test": "echo \"[Backend] Stub test\" && exit 0",
-    "lint": "echo \"[Backend] Stub lint\" && exit 0"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@ajson/contracts": "*",
+    "node-pty": "^1.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2"
   }
 }

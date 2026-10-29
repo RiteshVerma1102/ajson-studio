@@ -8,6 +8,7 @@ export type SidebarTab =
   | 'debug'
   | 'tests'
   | 'extensions'
+  | 'json'
   | 'settings';
 
 export type BottomTab = 'terminal' | 'output' | 'problems';
@@ -15,6 +16,10 @@ export type BottomTab = 'terminal' | 'output' | 'problems';
 export type AppView = 'editor' | 'manager';
 
 export type ThemeMode = 'dark' | 'light' | 'high-contrast';
+
+export type LayoutPreset = 'default' | 'focus' | 'agent-first';
+
+export type MaximizedPanel = 'sidebar' | 'editor' | 'bottom' | 'right' | null;
 
 export interface LayoutState {
   activeView: AppView;
@@ -30,6 +35,17 @@ export interface LayoutState {
   bottomPanelOpen: boolean;
   bottomPanelSize: number;
   activeBottomTab: BottomTab;
+
+  // Presets & Modes
+  layoutPreset: LayoutPreset;
+  zenMode: boolean;
+  maximizedPanel: MaximizedPanel;
+
+  // Dialogs
+  aboutOpen: boolean;
+  tourOpen: boolean;
+  notificationCenterOpen: boolean;
+  quickOpen: boolean;
 
   // Actions
   setActiveView: (view: AppView) => void;
@@ -51,6 +67,15 @@ export interface LayoutState {
   setActiveBottomTab: (tab: BottomTab) => void;
 
   resetPanelSizes: () => void;
+  applyLayoutPreset: (preset: LayoutPreset) => void;
+  toggleZenMode: () => void;
+  toggleMaximizePanel: (panel: 'sidebar' | 'editor' | 'bottom' | 'right') => void;
+
+  setAboutOpen: (open: boolean) => void;
+  setTourOpen: (open: boolean) => void;
+  setNotificationCenterOpen: (open: boolean) => void;
+  setQuickOpen: (open: boolean) => void;
+  toggleQuickOpen: () => void;
 }
 
 const STORAGE_KEY = 'ajson_layout_state_v1';
@@ -80,6 +105,9 @@ function loadInitialState() {
         bottomPanelOpen: parsed.bottomPanelOpen ?? true,
         bottomPanelSize: parsed.bottomPanelSize ?? DEFAULT_SIZES.bottomPanel,
         activeBottomTab: (parsed.activeBottomTab as BottomTab) || 'terminal',
+        layoutPreset: (parsed.layoutPreset as LayoutPreset) || 'default',
+        zenMode: false,
+        maximizedPanel: null as MaximizedPanel,
       };
     }
   } catch {
@@ -97,6 +125,9 @@ function loadInitialState() {
     bottomPanelOpen: true,
     bottomPanelSize: DEFAULT_SIZES.bottomPanel,
     activeBottomTab: 'terminal' as BottomTab,
+    layoutPreset: 'default' as LayoutPreset,
+    zenMode: false,
+    maximizedPanel: null as MaximizedPanel,
   };
 }
 
@@ -112,6 +143,7 @@ function persistState(state: Partial<LayoutState>) {
       bottomPanelOpen: state.bottomPanelOpen,
       bottomPanelSize: state.bottomPanelSize,
       activeBottomTab: state.activeBottomTab,
+      layoutPreset: state.layoutPreset,
     };
     safeStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {
@@ -124,6 +156,9 @@ export const useLayoutStore = create<LayoutState>((set, get) => {
 
   return {
     ...initial,
+    aboutOpen: false,
+    tourOpen: false,
+    notificationCenterOpen: false,
 
     setActiveView: (view) => {
       set({ activeView: view });
@@ -161,7 +196,6 @@ export const useLayoutStore = create<LayoutState>((set, get) => {
 
     setActiveSidebarTab: (tab) => {
       set((s) => {
-        // Clicking active tab toggles sidebar open/closed
         if (s.activeSidebarTab === tab && s.sidebarOpen) {
           return { sidebarOpen: false };
         }
@@ -210,8 +244,84 @@ export const useLayoutStore = create<LayoutState>((set, get) => {
         sidebarSize: DEFAULT_SIZES.sidebar,
         rightPanelSize: DEFAULT_SIZES.rightPanel,
         bottomPanelSize: DEFAULT_SIZES.bottomPanel,
+        maximizedPanel: null,
       });
       persistState(get());
     },
+
+    applyLayoutPreset: (preset) => {
+      if (preset === 'focus') {
+        set({
+          layoutPreset: 'focus',
+          sidebarOpen: false,
+          rightPanelOpen: false,
+          bottomPanelOpen: false,
+          zenMode: false,
+          maximizedPanel: null,
+        });
+      } else if (preset === 'agent-first') {
+        set({
+          layoutPreset: 'agent-first',
+          sidebarOpen: true,
+          sidebarSize: 18,
+          rightPanelOpen: true,
+          rightPanelSize: 40,
+          bottomPanelOpen: true,
+          bottomPanelSize: 30,
+          zenMode: false,
+          maximizedPanel: null,
+        });
+      } else {
+        // default
+        set({
+          layoutPreset: 'default',
+          sidebarOpen: true,
+          sidebarSize: DEFAULT_SIZES.sidebar,
+          rightPanelOpen: true,
+          rightPanelSize: DEFAULT_SIZES.rightPanel,
+          bottomPanelOpen: true,
+          bottomPanelSize: DEFAULT_SIZES.bottomPanel,
+          zenMode: false,
+          maximizedPanel: null,
+        });
+      }
+      persistState(get());
+    },
+
+    toggleZenMode: () => {
+      const nextZen = !get().zenMode;
+      if (nextZen) {
+        set({
+          zenMode: true,
+          sidebarOpen: false,
+          rightPanelOpen: false,
+          bottomPanelOpen: false,
+          maximizedPanel: null,
+        });
+      } else {
+        set({
+          zenMode: false,
+          sidebarOpen: true,
+          rightPanelOpen: true,
+          bottomPanelOpen: true,
+        });
+      }
+    },
+
+    toggleMaximizePanel: (panel) => {
+      const current = get().maximizedPanel;
+      if (current === panel) {
+        set({ maximizedPanel: null });
+      } else {
+        set({ maximizedPanel: panel });
+      }
+    },
+
+    setAboutOpen: (open) => set({ aboutOpen: open }),
+    setTourOpen: (open) => set({ tourOpen: open }),
+    setNotificationCenterOpen: (open) => set({ notificationCenterOpen: open }),
+    quickOpen: false,
+    setQuickOpen: (open) => set({ quickOpen: open }),
+    toggleQuickOpen: () => set((s) => ({ quickOpen: !s.quickOpen })),
   };
 });

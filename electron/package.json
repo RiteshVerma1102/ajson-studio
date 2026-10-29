@@ -2,12 +2,23 @@
   "name": "@ajson-studio/electron",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Ajson Studio Desktop Shell",
   "main": "dist/main/index.js",
   "scripts": {
-    "build": "echo \"[Electron] Stub build\" && exit 0",
-    "typecheck": "echo \"[Electron] Stub typecheck\" && exit 0",
-    "test": "echo \"[Electron] Stub test\" && exit 0",
-    "lint": "echo \"[Electron] Stub lint\" && exit 0"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@ajson/contracts": "*",
+    "@ajson-studio/backend": "*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "electron": "^33.2.1",
+    "typescript": "^5.7.2"
   }
 }
+
+

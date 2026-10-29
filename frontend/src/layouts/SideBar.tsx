@@ -1,18 +1,20 @@
 import React from 'react';
 import {
-  MoreHorizontal,
   ChevronLeft,
-  FolderOpen,
-  Search as SearchIcon,
-  GitBranch,
-  Play,
-  CheckSquare,
-  Blocks,
-  Settings as SettingsIcon,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { useLayoutStore, SidebarTab } from '../state/layoutStore';
 import { IconButton } from '../components/IconButton/IconButton';
-import { EmptyState } from '../components/EmptyState/EmptyState';
+import { PanelErrorBoundary } from '../components/ErrorBoundary/PanelErrorBoundary';
+import { FileTree } from '../panels/explorer/FileTree';
+import { SearchPanel } from '../panels/search/SearchPanel';
+import { GitPanel } from '../panels/git/GitPanel';
+import { SettingsPanel } from '../panels/settings/SettingsPanel';
+import { DebugPanel } from '../panels/debug/DebugPanel';
+import { TestExplorerPanel } from '../panels/tests/TestExplorerPanel';
+import { ExtensionsPanel } from '../panels/extensions/ExtensionsPanel';
+import { JsonToolsPanel } from '../panels/json/JsonToolsPanel';
 import styles from './SideBar.module.css';
 
 const TAB_TITLES: Record<SidebarTab, string> = {
@@ -21,48 +23,51 @@ const TAB_TITLES: Record<SidebarTab, string> = {
   git: 'Source Control',
   debug: 'Run & Debug',
   tests: 'Test Explorer',
-  extensions: 'Extensions',
+  extensions: 'Extensions & MCP',
+  json: 'JSON Tools & Suite',
   settings: 'Settings',
 };
 
-const TAB_ICONS: Record<SidebarTab, React.ReactNode> = {
-  explorer: <FolderOpen size={24} />,
-  search: <SearchIcon size={24} />,
-  git: <GitBranch size={24} />,
-  debug: <Play size={24} />,
-  tests: <CheckSquare size={24} />,
-  extensions: <Blocks size={24} />,
-  settings: <SettingsIcon size={24} />,
-};
-
 export const SideBar: React.FC = () => {
-  const { activeSidebarTab, toggleSidebar } = useLayoutStore();
+  const {
+    activeSidebarTab,
+    toggleSidebar,
+    maximizedPanel,
+    toggleMaximizePanel,
+  } = useLayoutStore();
+
+  const isMaximized = maximizedPanel === 'sidebar';
 
   return (
-    <div className={styles.sideBar}>
-      <div className={styles.header}>
-        <span className={styles.title}>{TAB_TITLES[activeSidebarTab]}</span>
-        <div className={styles.actions}>
-          <IconButton label="More Actions" size="sm">
-            <MoreHorizontal size={14} />
-          </IconButton>
-          <IconButton label="Collapse Side Bar" size="sm" onClick={toggleSidebar}>
-            <ChevronLeft size={14} />
-          </IconButton>
+    <PanelErrorBoundary name={`SideBar (${TAB_TITLES[activeSidebarTab]})`}>
+      <div className={styles.sideBar}>
+        <div className={styles.header}>
+          <span className={styles.title}>{TAB_TITLES[activeSidebarTab]}</span>
+          <div className={styles.actions}>
+            <IconButton
+              label={isMaximized ? 'Restore Side Bar' : 'Maximize Side Bar'}
+              size="sm"
+              onClick={() => toggleMaximizePanel('sidebar')}
+            >
+              {isMaximized ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            </IconButton>
+            <IconButton label="Collapse Side Bar" size="sm" onClick={toggleSidebar}>
+              <ChevronLeft size={14} />
+            </IconButton>
+          </div>
+        </div>
+
+        <div className={styles.content}>
+          {activeSidebarTab === 'explorer' && <FileTree />}
+          {activeSidebarTab === 'search' && <SearchPanel />}
+          {activeSidebarTab === 'git' && <GitPanel />}
+          {activeSidebarTab === 'debug' && <DebugPanel />}
+          {activeSidebarTab === 'tests' && <TestExplorerPanel />}
+          {activeSidebarTab === 'extensions' && <ExtensionsPanel />}
+          {activeSidebarTab === 'json' && <JsonToolsPanel />}
+          {activeSidebarTab === 'settings' && <SettingsPanel />}
         </div>
       </div>
-
-      <div className={styles.content}>
-        <EmptyState
-          icon={TAB_ICONS[activeSidebarTab]}
-          title={TAB_TITLES[activeSidebarTab]}
-          description={
-            activeSidebarTab === 'explorer'
-              ? 'Virtual file system and sample project workspace initialized.'
-              : `Ready to connect ${TAB_TITLES[activeSidebarTab].toLowerCase()} services.`
-          }
-        />
-      </div>
-    </div>
+    </PanelErrorBoundary>
   );
 };

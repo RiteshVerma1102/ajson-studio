@@ -14,11 +14,11 @@
   --fg-2: #475569;
   --fg-3: #64748B;
 
-  /* Brand Accent: Deep Teal (contrast >= 4.5:1 on light background) */
-  --accent: #0D9488;
-  --accent-hover: #0F766E;
-  --accent-active: #115E59;
-  --accent-subtle: rgba(13, 148, 136, 0.12);
+  /* Brand Accent: Deep Teal (contrast >= 4.5:1 on light background and with white text) */
+  --accent: #0F766E;
+  --accent-hover: #115E59;
+  --accent-active: #134E4A;
+  --accent-subtle: rgba(15, 118, 110, 0.12);
   --accent-contrast: #FFFFFF;
 
   /* Semantic Colors */

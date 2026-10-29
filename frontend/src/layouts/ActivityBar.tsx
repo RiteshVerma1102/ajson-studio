@@ -6,6 +6,7 @@ import {
   Play,
   CheckSquare,
   Blocks,
+  FileJson,
   Bot,
   Settings,
 } from 'lucide-react';
@@ -28,9 +29,10 @@ export const ActivityBar: React.FC = () => {
     { id: 'explorer', label: 'Explorer', icon: <Files size={18} />, shortcut: 'Ctrl+Shift+E' },
     { id: 'search', label: 'Search', icon: <Search size={18} />, shortcut: 'Ctrl+Shift+F' },
     { id: 'git', label: 'Source Control', icon: <GitBranch size={18} />, badge: 2, shortcut: 'Ctrl+Shift+G' },
+    { id: 'json', label: 'JSON Tools & Suite', icon: <FileJson size={18} />, shortcut: 'Ctrl+Shift+J' },
     { id: 'debug', label: 'Run & Debug', icon: <Play size={18} />, shortcut: 'Ctrl+Shift+D' },
     { id: 'tests', label: 'Test Explorer', icon: <CheckSquare size={18} />, shortcut: 'Ctrl+Shift+T' },
-    { id: 'extensions', label: 'Extensions', icon: <Blocks size={18} />, shortcut: 'Ctrl+Shift+X' },
+    { id: 'extensions', label: 'Extensions & MCP', icon: <Blocks size={18} />, shortcut: 'Ctrl+Shift+X' },
   ];
 
   return (

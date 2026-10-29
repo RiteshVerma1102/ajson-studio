@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  user-select: none;
+  font-size: var(--text-sm);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.treeArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.treeNode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  color: var(--fg-1);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+  position: relative;
+}
+
+.treeNode:hover {
+  background-color: var(--bg-2);
+}
+
+.treeNode.selected {
+  background-color: var(--bg-3);
+  color: var(--fg-0);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gitBadge {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.gitM {
+  color: var(--color-warning);
+}
+
+.gitA {
+  color: var(--color-success);
+}
+
+.gitD {
+  color: var(--color-danger);
+}
+
+.gitU {
+  color: var(--color-info);
+}
+
+.inlineInput {
+  background: var(--bg-1);
+  border: 1px solid var(--accent);
+  color: var(--fg-0);
+  font-size: var(--text-xs);
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+  outline: none;
+  width: 100%;
+}

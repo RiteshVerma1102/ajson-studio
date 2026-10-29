@@ -1,0 +1,119 @@
+﻿.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-0);
+  font-family: var(--font-family-code);
+}
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  height: 30px;
+  background-color: var(--bg-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sessionTabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: var(--font-size-2xs);
+  color: var(--fg-2);
+  background-color: var(--bg-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.tab:hover {
+  color: var(--fg-0);
+}
+
+.activeTab {
+  color: var(--accent);
+  background-color: var(--bg-3);
+  border-bottom: 2px solid var(--accent);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--fg-3);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.closeBtn:hover {
+  color: var(--fg-0);
+}
+
+/* xterm.js host container - fills remaining vertical space */
+.xtermContainer {
+  flex: 1;
+  overflow: hidden;
+  padding: 6px;
+  background-color: #06080E;
+}
+
+/* xterm.js internal overrides */
+.xtermContainer :global(.xterm) {
+  height: 100%;
+}
+
+.xtermContainer :global(.xterm-viewport) {
+  overflow-y: auto !important;
+}
+
+/* Browser fallback styles */
+.terminalBody {
+  flex: 1;
+  padding: var(--space-3);
+  overflow-y: auto;
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  color: var(--fg-1);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.line {
+  margin-bottom: 2px;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  padding: 6px var(--space-3);
+  background-color: var(--bg-1);
+  border-top: 1px solid var(--color-border);
+  gap: var(--space-2);
+}
+
+.promptPrefix {
+  color: var(--accent);
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+}
+
+.terminalInput {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--fg-0);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-xs);
+  outline: none;
+}
