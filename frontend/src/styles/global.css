@@ -103,3 +103,30 @@ button {
   white-space: nowrap;
   border: 0;
 }
+
+/* =========================================================
+ * AntiGravity Visual Diff Highlights for Monaco
+ * ========================================================= */
+
+.monaco-patch-highlight {
+  background: rgba(0, 242, 254, 0.12) !important;
+  border-left: 3px solid #00F2FE !important;
+  box-shadow: inset 0 0 16px rgba(0, 242, 254, 0.1);
+  animation: patchPulse 2.5s ease-in-out infinite alternate;
+}
+
+.monaco-patch-glyph {
+  background: #00F2FE !important;
+  width: 4px !important;
+  border-radius: 2px;
+  box-shadow: 0 0 6px #00F2FE;
+}
+
+@keyframes patchPulse {
+  from {
+    background-color: rgba(0, 242, 254, 0.18);
+  }
+  to {
+    background-color: rgba(0, 242, 254, 0.06);
+  }
+}

@@ -5,6 +5,10 @@
   flex-direction: column;
   overflow: hidden;
   background-color: var(--bg-0);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(6, 8, 14, 0.95) 0%, #06080e 100%);
   color: var(--fg-1);
 }
 

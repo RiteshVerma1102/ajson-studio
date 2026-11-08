@@ -66,6 +66,20 @@
   --titlebar-height: 38px;
   --activitybar-width: 48px;
   --statusbar-height: 24px;
+
+  /* Anti-Gravity Glassmorphism & Neon Tokens */
+  --glass-bg: rgba(11, 15, 25, 0.78);
+  --glass-bg-subtle: rgba(17, 24, 39, 0.65);
+  --glass-bg-elevated: rgba(27, 34, 52, 0.82);
+  --glass-blur: blur(16px);
+  --glass-blur-lg: blur(24px);
+  --glass-border: 1px solid rgba(0, 242, 254, 0.16);
+  --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-border-glow: 1px solid rgba(0, 242, 254, 0.45);
+  --neon-glow-cyan: 0 0 16px rgba(0, 242, 254, 0.35);
+  --neon-glow-purple: 0 0 16px rgba(168, 85, 247, 0.35);
+  --lift-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 242, 254, 0.18);
+  --hover-lift: translateY(-2px);
 }
 
 @media (prefers-reduced-motion: reduce) {

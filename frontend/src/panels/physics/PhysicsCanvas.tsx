@@ -144,6 +144,10 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
 
   const [cardCount, setCardCount] = useState(0);
 
+  const { tabs, activeTabId } = useEditorStore();
+  const activeTabIdRef = useRef(activeTabId);
+  activeTabIdRef.current = activeTabId;
+
   // -------------------------------------------------------------------------
   // Add Card Internal
   // -------------------------------------------------------------------------
@@ -414,16 +418,30 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
         const card = body._card;
         const color = card.color ?? '#6366f1';
 
+        const isActiveInMonaco =
+          card.type === 'file' &&
+          Boolean(activeTabIdRef.current) &&
+          (card.id === `file:${activeTabIdRef.current}` ||
+            card.meta?.path === activeTabIdRef.current ||
+            card.label === activeTabIdRef.current?.split('/').pop());
+
         ctx.save();
         ctx.translate(pos.x, pos.y);
         ctx.rotate(angle);
 
-        // Drop Shadow
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 4;
+        // Drop Shadow & Neon Aura for active Monaco file
+        if (isActiveInMonaco) {
+          const pulse = Math.sin(performance.now() * 0.006) * 0.3 + 0.7;
+          ctx.shadowColor = '#00F2FE';
+          ctx.shadowBlur = 18 * pulse;
+          ctx.shadowOffsetY = 0;
+        } else {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetY = 4;
+        }
 
-        // Card body background
+        // Card body background (Frosted glassmorphism surface)
         drawRoundRect(
           ctx,
           -CARD_WIDTH / 2,
@@ -432,7 +450,7 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
           CARD_HEIGHT,
           CARD_RADIUS
         );
-        ctx.fillStyle = '#161622';
+        ctx.fillStyle = isActiveInMonaco ? '#101726' : '#141724';
         ctx.fill();
 
         ctx.shadowBlur = 0;
@@ -447,10 +465,10 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
           CARD_HEIGHT,
           2
         );
-        ctx.fillStyle = color;
+        ctx.fillStyle = isActiveInMonaco ? '#00F2FE' : color;
         ctx.fill();
 
-        // Border outline
+        // Border outline (Neon cyan if active in Monaco)
         drawRoundRect(
           ctx,
           -CARD_WIDTH / 2,
@@ -459,9 +477,17 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
           CARD_HEIGHT,
           CARD_RADIUS
         );
-        ctx.strokeStyle = color + '44';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = isActiveInMonaco ? '#00F2FE' : color + '44';
+        ctx.lineWidth = isActiveInMonaco ? 2.5 : 1.5;
         ctx.stroke();
+
+        if (isActiveInMonaco) {
+          // Draw active pulse indicator
+          ctx.beginPath();
+          ctx.arc(-CARD_WIDTH / 2 + 12, -CARD_HEIGHT / 2 + 12, 3, 0, Math.PI * 2);
+          ctx.fillStyle = '#00F2FE';
+          ctx.fill();
+        }
 
         // Badge pill in top right corner (FILE, GIT, TERM, AI)
         const typeBadge = (card.type || 'node').toUpperCase();
@@ -548,7 +574,6 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
   // -------------------------------------------------------------------------
   // Auto-synchronize Open Workspace Files
   // -------------------------------------------------------------------------
-  const { tabs } = useEditorStore();
   useEffect(() => {
     if (!engineRef.current) return;
     for (const tab of tabs) {
@@ -688,6 +713,35 @@ const PhysicsCanvasInner = forwardRef<PhysicsCanvasHandle>((_props, ref) => {
           title="Add interactive AI card"
         >
           ＋ Spawn Node
+        </button>
+
+        <button
+          className={styles.toolbarBtn}
+          onClick={() => {
+            const activeTab = tabs.find((t) => t.id === activeTabId);
+            if (activeTab) {
+              const existing = bodiesRef.current.find(
+                (b) => b._card.id === `file:${activeTab.path}`
+              );
+              if (existing) {
+                Matter.Body.applyForce(existing, existing.position, {
+                  x: (Math.random() - 0.5) * 0.005,
+                  y: -0.015 * existing.mass,
+                });
+              } else {
+                addCardInternal(
+                  activeTab.title,
+                  activeTab.path,
+                  undefined,
+                  'file',
+                  { path: activeTab.path, id: `file:${activeTab.path}` }
+                );
+              }
+            }
+          }}
+          title="Float currently active Monaco file into canvas"
+        >
+          📄 Float Active Tab
         </button>
       </div>
 

@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: #0d0d1a;
+  background: radial-gradient(circle at 50% 30%, rgba(20, 24, 45, 0.9) 0%, #080a14 100%);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -12,41 +12,52 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 6px 12px;
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.12);
   flex-shrink: 0;
   z-index: 10;
 }
 
 .cardCount {
   font-size: 11px;
-  color: var(--fg-2, #94a3b8);
+  color: #94a3b8;
   margin-right: auto;
   font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
 }
 
 .toolbarBtn {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--fg-1, #e2e8f0);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
   font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 4px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  font-family: system-ui, sans-serif;
+  transition: all 0.15s ease;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .toolbarBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(0, 242, 254, 0.12);
+  border-color: rgba(0, 242, 254, 0.4);
+  color: #ffffff;
+  transform: var(--hover-lift);
+  box-shadow: 0 4px 12px rgba(0, 242, 254, 0.2);
 }
 
 .toolbarBtn.active {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.6);
-  color: #a5b4fc;
+  background: rgba(0, 242, 254, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.35);
 }
 
 .canvas {

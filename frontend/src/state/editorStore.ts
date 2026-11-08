@@ -17,6 +17,11 @@ export interface EditorTab {
   cursorLine?: number;
   cursorColumn?: number;
   hasConflict?: boolean;
+  patchHighlight?: {
+    startLine: number;
+    endLine: number;
+    timestamp: number;
+  };
 }
 
 export type SplitLayout = 'none' | 'vertical' | 'horizontal';
@@ -33,6 +38,7 @@ export interface EditorState {
   openFile: (path: string, options?: { preview?: boolean; line?: number; column?: number }) => Promise<void>;
   openDiff: (path: string, original: string, modified: string, staged?: boolean) => void;
   updateContent: (id: string, content: string) => void;
+  applyPatch: (id: string, content: string) => void;
   saveActiveFile: () => Promise<void>;
   resolveConflict: (id: string, choice: 'keep' | 'revert') => Promise<void>;
   closeTab: (id: string) => void;
@@ -288,6 +294,31 @@ export const useEditorStore = create<EditorState>((set, get) => {
         });
         return { tabs: nextTabs };
       });
+    },
+
+    applyPatch: (id, newContent) => {
+      const lineCount = newContent.split('\n').length;
+      set((state) => {
+        const nextTabs = state.tabs.map((t) => {
+          if (t.id === id) {
+            return {
+              ...t,
+              content: newContent,
+              isDirty: newContent !== t.originalContent,
+              isPreview: false,
+              isPinned: true,
+              patchHighlight: {
+                startLine: 1,
+                endLine: Math.max(1, lineCount),
+                timestamp: Date.now(),
+              },
+            };
+          }
+          return t;
+        });
+        return { tabs: nextTabs };
+      });
+      persistTabs(get().tabs, get().activeTabId, get().splitLayout, get().secondaryActiveTabId);
     },
 
     saveActiveFile: async () => {

@@ -79,6 +79,49 @@ export const MonacoHost: React.FC<MonacoHostProps> = ({ tab }) => {
     };
   }, [tab.path]);
 
+  // Visual Diff Highlights when an AI patch is applied
+  useEffect(() => {
+    if (!editorRef.current || !monacoRef.current || !tab.patchHighlight) return;
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+
+    const decorations = editor.deltaDecorations(
+      [],
+      [
+        {
+          range: new monaco.Range(
+            tab.patchHighlight.startLine,
+            1,
+            tab.patchHighlight.endLine,
+            1
+          ),
+          options: {
+            isWholeLine: true,
+            className: 'monaco-patch-highlight',
+            marginClassName: 'monaco-patch-glyph',
+            overviewRuler: {
+              color: '#00F2FE',
+              position: monaco.editor.OverviewRulerLane.Full,
+            },
+          },
+        },
+      ]
+    );
+
+    const timer = setTimeout(() => {
+      if (editorRef.current) {
+        editorRef.current.deltaDecorations(decorations, []);
+      }
+    }, 4000);
+
+    return () => {
+      clearTimeout(timer);
+      if (editorRef.current) {
+        editorRef.current.deltaDecorations(decorations, []);
+      }
+    };
+  }, [tab.patchHighlight]);
+
   if (tab.type === 'diff') {
     return (
       <DiffViewer

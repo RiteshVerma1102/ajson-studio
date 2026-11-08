@@ -196,8 +196,9 @@ const ToolActionCard: React.FC<ToolActionCardProps> = ({ tool }) => {
         const activeTab = store.tabs.find((t) => t.id === store.activeTabId);
 
         if (activeTab) {
-          store.openDiff(path || activeTab.path, activeTab.content, code, false);
-          setOutput(`Opened diff viewer for ${path || activeTab.title}`);
+          store.applyPatch(activeTab.id, code);
+          useLayoutStore.getState().setActiveView('editor');
+          setOutput(`Applied patch with visual diff highlights to ${path || activeTab.title}`);
         } else {
           setOutput('No active editor tab to compare.');
         }
@@ -497,7 +498,7 @@ export const AiPanel: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string>('claude-3-5-sonnet');
   const [attachedContext, setAttachedContext] = useState<string | null>(null);
 
-  const { activeTabId, tabs, updateContent, openDiff } = useEditorStore();
+  const { activeTabId, tabs, applyPatch, openDiff } = useEditorStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const streamUnsubRef = useRef<(() => void) | null>(null);
@@ -621,13 +622,14 @@ export const AiPanel: React.FC = () => {
     }
   }, [inputVal, isGenerating, messages, selectedModel, activeTab, attachedContext]);
 
-  // Direct Editor Action: Apply patch to active file
+  // Direct Editor Action: Apply patch to active file with visual diff highlights
   const handleApplyPatch = useCallback(
     (code: string) => {
       if (!activeTab || activeTab.type === 'diff') return;
-      updateContent(activeTab.id, code);
+      applyPatch(activeTab.id, code);
+      useLayoutStore.getState().setActiveView('editor');
     },
-    [activeTab, updateContent]
+    [activeTab, applyPatch]
   );
 
   // Direct Editor Action: Open Monaco Diff Viewer
