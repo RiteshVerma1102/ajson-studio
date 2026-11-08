@@ -9,7 +9,8 @@ export type SidebarTab =
   | 'tests'
   | 'extensions'
   | 'json'
-  | 'settings';
+  | 'settings'
+  | 'physics';
 
 export type BottomTab = 'terminal' | 'output' | 'problems';
 

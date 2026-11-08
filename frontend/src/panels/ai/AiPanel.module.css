@@ -260,3 +260,120 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* =========================================================
+ * Code block styles (added for streaming + markdown upgrade)
+ * ========================================================= */
+
+.codeBlockWrapper {
+  margin: 8px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.codeBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.codeLang {
+  font-size: 10px;
+  color: var(--fg-2, #94a3b8);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: lowercase;
+}
+
+.codeBlockActions {
+  display: flex;
+  gap: 6px;
+}
+
+.codeAction {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  color: var(--fg-1, #e2e8f0);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.codeAction:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.applyBtn {
+  color: var(--accent, #6366f1) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.applyBtn:hover {
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 10px 12px;
+  background: #0d1117;
+  color: #e2e8f0;
+  font-size: 11.5px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.codeBlock code {
+  background: none;
+  font: inherit;
+}
+
+.plainText {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.inlineCode {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+.streamingDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent, #6366f1);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.cursor {
+  display: inline;
+  color: var(--accent, #6366f1);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

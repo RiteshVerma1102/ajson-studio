@@ -9,6 +9,7 @@ import {
   FileJson,
   Bot,
   Settings,
+  Atom,
 } from 'lucide-react';
 import { useLayoutStore, SidebarTab } from '../state/layoutStore';
 import { Tooltip } from '../components/Tooltip/Tooltip';
@@ -33,6 +34,7 @@ export const ActivityBar: React.FC = () => {
     { id: 'debug', label: 'Run & Debug', icon: <Play size={18} />, shortcut: 'Ctrl+Shift+D' },
     { id: 'tests', label: 'Test Explorer', icon: <CheckSquare size={18} />, shortcut: 'Ctrl+Shift+T' },
     { id: 'extensions', label: 'Extensions & MCP', icon: <Blocks size={18} />, shortcut: 'Ctrl+Shift+X' },
+    { id: 'physics', label: 'AntiGravity Canvas', icon: <Atom size={18} />, shortcut: 'Ctrl+Shift+P' },
   ];
 
   return (

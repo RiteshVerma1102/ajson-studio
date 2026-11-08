@@ -15,6 +15,7 @@ import { DebugPanel } from '../panels/debug/DebugPanel';
 import { TestExplorerPanel } from '../panels/tests/TestExplorerPanel';
 import { ExtensionsPanel } from '../panels/extensions/ExtensionsPanel';
 import { JsonToolsPanel } from '../panels/json/JsonToolsPanel';
+import { PhysicsCanvas } from '../panels/physics/PhysicsCanvas';
 import styles from './SideBar.module.css';
 
 const TAB_TITLES: Record<SidebarTab, string> = {
@@ -26,6 +27,7 @@ const TAB_TITLES: Record<SidebarTab, string> = {
   extensions: 'Extensions & MCP',
   json: 'JSON Tools & Suite',
   settings: 'Settings',
+  physics: 'AntiGravity Canvas',
 };
 
 export const SideBar: React.FC = () => {
@@ -66,6 +68,7 @@ export const SideBar: React.FC = () => {
           {activeSidebarTab === 'extensions' && <ExtensionsPanel />}
           {activeSidebarTab === 'json' && <JsonToolsPanel />}
           {activeSidebarTab === 'settings' && <SettingsPanel />}
+          {activeSidebarTab === 'physics' && <PhysicsCanvas />}
         </div>
       </div>
     </PanelErrorBoundary>
