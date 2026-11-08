@@ -49,13 +49,14 @@
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 0 | Audit + baseline | Done |
-| 1 | Design tokens + theme + app shell refactor | In Progress |
-| 2 | JSON core editor (validate, format, minify, sort, tree, stats) | Todo |
-| 3 | Settings, templates, persistence (localStorage) | Todo |
-| 4 | Tools (diff, schema, CSV, TS types, JSONPath) | Todo |
-| 5 | AI panel presets + API playground | Todo |
-| 6 | Polish, a11y, responsive, large-file, tests | Todo |
+| 0 | Audit + baseline | ✅ Done |
+| 1 | Design tokens + theme + app shell refactor | ✅ Done |
+| 2 | JSON core editor (validate, format, minify, sort, tree, stats) | ✅ Done (JsonStudio.tsx) |
+| 3 | Settings, templates, persistence (localStorage) | ✅ Done (JsonStudio.tsx) |
+| 4 | Tools (diff, schema, CSV, TS types, JSONPath) | ✅ Done (JsonStudio.tsx) |
+| 5 | AI panel presets + API playground | ✅ Done (JsonStudio.tsx) |
+| 5.5 | **Wire JsonStudio into App.tsx** | ✅ Done (2026-10-28) |
+| 6 | Polish, a11y, responsive, large-file, tests | In Progress |
 
 ---
 
