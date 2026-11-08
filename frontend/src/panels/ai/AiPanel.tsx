@@ -1,14 +1,17 @@
 /**
- * AiPanel — Claude-style AI assistant panel.
+ * AiPanel — Claude-style AI assistant panel with Direct Code Action Injection.
  *
  * Features:
- * - Real-time streaming response via onStreamEvent
+ * - Real-time streaming response with live cursor and cancel support
  * - Markdown rendering with syntax-highlighted code blocks
- * - Copy button on every code block
- * - "Apply patch" button: patches active Monaco file from code blocks
- * - Active file context injection chip
- * - Abort streaming with Stop button
- * - Model selector dropdown
+ * - Direct Editor Action Injection:
+ *     - "Apply Patch": directly updates the active Monaco Editor buffer
+ *     - "Open Diff View": opens side-by-side diff comparison tab in Monaco
+ *     - "Run in Terminal": executes commands via terminalService and switches to bottom terminal tab
+ *     - "Float in Canvas": spawns a dynamic floating node in the AntiGravity PhysicsCanvas
+ * - Structured Tool-Use execution: parses and renders interactive Tool Action Cards
+ *     (e.g., run_command, apply_diff, spawn_physics_node)
+ * - Automatic active Monaco file context injection with token estimation
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -22,47 +25,288 @@ import {
   FileCode,
   X,
   Wrench,
+  Terminal as TerminalIcon,
+  Atom,
+  Play,
+  GitCompare,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
-import { aiService, AiChatMessage, AiModelConfig } from '../../services';
+import { aiService, AiChatMessage, AiModelConfig, terminalService } from '../../services';
 import { useEditorStore } from '../../state/editorStore';
+import { useLayoutStore } from '../../state/layoutStore';
+import { usePhysicsStore } from '../../state/physicsStore';
 import { IconButton } from '../../components/IconButton/IconButton';
 import styles from './AiPanel.module.css';
 
 // ---------------------------------------------------------------------------
-// Markdown code-block renderer (lightweight, no extra dep required)
+// Tool Use & Code Block Parsing
 // ---------------------------------------------------------------------------
 
-function parseCodeBlocks(text: string): Array<{ type: 'text' | 'code'; content: string; lang?: string }> {
-  const segments: Array<{ type: 'text' | 'code'; content: string; lang?: string }> = [];
-  const fenceRe = /```(\w*)\n?([\s\S]*?)```/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+export interface StructuredToolCall {
+  id: string;
+  name: 'run_command' | 'apply_diff' | 'spawn_physics_node' | string;
+  args: Record<string, unknown>;
+  raw: string;
+}
 
-  while ((match = fenceRe.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+type MessageSegment =
+  | { type: 'text'; content: string }
+  | { type: 'code'; lang: string; content: string }
+  | { type: 'tool'; tool: StructuredToolCall };
+
+function parseMessageSegments(text: string): MessageSegment[] {
+  const segments: MessageSegment[] = [];
+
+  // 1. Check for XML-style <tool_call name="...">...</tool_call>
+  const xmlToolRe = /<tool_call\s+name=["']([^"']+)["']>([\s\S]*?)<\/tool_call>/g;
+  // 2. Check for Markdown fence style ```tool:<toolName> ... ``` or normal ```lang ... ```
+  const fenceRe = /```(?:tool:)?(\w*)\n?([\s\S]*?)```/g;
+
+  let currentText = text;
+
+  // First replace XML tool calls with placeholders or extract them
+  const rawSegments: Array<{ index: number; length: number; segment: MessageSegment }> = [];
+
+  let xmlMatch: RegExpExecArray | null;
+  while ((xmlMatch = xmlToolRe.exec(currentText)) !== null) {
+    const name = xmlMatch[1] || 'tool';
+    let args: Record<string, unknown> = {};
+    try {
+      args = JSON.parse(xmlMatch[2] || '{}');
+    } catch {
+      args = { input: xmlMatch[2]?.trim() };
     }
-    segments.push({ type: 'code', lang: match[1] || 'plaintext', content: match[2]?.trim() ?? '' });
-    lastIndex = fenceRe.lastIndex;
+    rawSegments.push({
+      index: xmlMatch.index,
+      length: xmlMatch[0].length,
+      segment: {
+        type: 'tool',
+        tool: {
+          id: `tool-${xmlMatch.index}`,
+          name,
+          args,
+          raw: xmlMatch[0],
+        },
+      },
+    });
   }
 
-  if (lastIndex < text.length) {
-    segments.push({ type: 'text', content: text.slice(lastIndex) });
+  let fenceMatch: RegExpExecArray | null;
+  while ((fenceMatch = fenceRe.exec(currentText)) !== null) {
+    const fullTag = fenceMatch[0];
+    const isTool = fullTag.startsWith('```tool:');
+    const lang = fenceMatch[1] || 'plaintext';
+    const content = fenceMatch[2]?.trim() ?? '';
+
+    if (isTool) {
+      let args: Record<string, unknown> = {};
+      try {
+        args = JSON.parse(content);
+      } catch {
+        args = { input: content };
+      }
+      rawSegments.push({
+        index: fenceMatch.index,
+        length: fullTag.length,
+        segment: {
+          type: 'tool',
+          tool: {
+            id: `tool-${fenceMatch.index}`,
+            name: lang,
+            args,
+            raw: fullTag,
+          },
+        },
+      });
+    } else {
+      rawSegments.push({
+        index: fenceMatch.index,
+        length: fullTag.length,
+        segment: {
+          type: 'code',
+          lang,
+          content,
+        },
+      });
+    }
+  }
+
+  // Sort matched segments by index
+  rawSegments.sort((a, b) => a.index - b.index);
+
+  let lastIndex = 0;
+  for (const item of rawSegments) {
+    if (item.index > lastIndex) {
+      segments.push({
+        type: 'text',
+        content: currentText.slice(lastIndex, item.index),
+      });
+    }
+    segments.push(item.segment);
+    lastIndex = item.index + item.length;
+  }
+
+  if (lastIndex < currentText.length) {
+    segments.push({
+      type: 'text',
+      content: currentText.slice(lastIndex),
+    });
   }
 
   return segments;
 }
 
 // ---------------------------------------------------------------------------
-// MessageBubble component
+// Tool Action Card Component
+// ---------------------------------------------------------------------------
+
+interface ToolActionCardProps {
+  tool: StructuredToolCall;
+  onExecuteDone?: () => void;
+}
+
+const ToolActionCard: React.FC<ToolActionCardProps> = ({ tool }) => {
+  const [status, setStatus] = useState<'pending' | 'running' | 'success' | 'error'>('pending');
+  const [output, setOutput] = useState<string | null>(null);
+
+  const executeAction = async () => {
+    setStatus('running');
+    setOutput(null);
+
+    try {
+      if (tool.name === 'run_command' || tool.name === 'terminal') {
+        const cmd = (tool.args.command as string) || (tool.args.cmd as string) || String(tool.args.input || '');
+        const sessions = terminalService.listSessions();
+        let sessionId = sessions[0]?.id;
+        if (!sessionId) {
+          sessionId = await terminalService.createSession();
+        }
+
+        useLayoutStore.getState().setActiveBottomTab('terminal');
+        useLayoutStore.getState().setBottomPanelOpen(true);
+
+        const res = await terminalService.runCommand(sessionId, cmd);
+        setOutput(res.output || `Exited with code ${res.exitCode}`);
+        setStatus(res.exitCode === 0 ? 'success' : 'error');
+      } else if (tool.name === 'apply_diff' || tool.name === 'apply_patch') {
+        const path = (tool.args.path as string) || '';
+        const code = (tool.args.code as string) || (tool.args.patch as string) || String(tool.args.input || '');
+        const store = useEditorStore.getState();
+        const activeTab = store.tabs.find((t) => t.id === store.activeTabId);
+
+        if (activeTab) {
+          store.openDiff(path || activeTab.path, activeTab.content, code, false);
+          setOutput(`Opened diff viewer for ${path || activeTab.title}`);
+        } else {
+          setOutput('No active editor tab to compare.');
+        }
+        setStatus('success');
+      } else if (tool.name === 'spawn_physics_node' || tool.name === 'physics') {
+        const label = (tool.args.label as string) || 'AI Node';
+        const sublabel = (tool.args.sublabel as string) || 'Spawned by AI';
+        const color = (tool.args.color as string) || '#a855f7';
+
+        usePhysicsStore.getState().spawnNode({
+          label,
+          sublabel,
+          color,
+          type: 'ai',
+        });
+
+        useLayoutStore.getState().setActiveSidebarTab('physics');
+        setOutput(`Spawned physics node "${label}" in AntiGravity Canvas.`);
+        setStatus('success');
+      } else {
+        setOutput(`Executed custom action: ${tool.name}`);
+        setStatus('success');
+      }
+    } catch (err) {
+      setOutput(`Failed: ${(err as Error).message}`);
+      setStatus('error');
+    }
+  };
+
+  const badgeClass =
+    status === 'running'
+      ? styles.badgeRunning
+      : status === 'success'
+      ? styles.badgeSuccess
+      : status === 'error'
+      ? styles.badgeError
+      : styles.badgePending;
+
+  return (
+    <div className={styles.toolCard}>
+      <div className={styles.toolCardHeader}>
+        <div className={styles.toolHeaderLeft}>
+          {tool.name.includes('command') ? (
+            <TerminalIcon size={13} color="#f59e0b" />
+          ) : tool.name.includes('diff') || tool.name.includes('patch') ? (
+            <GitCompare size={13} color="#3b82f6" />
+          ) : (
+            <Atom size={13} color="#a855f7" />
+          )}
+          <span className={styles.toolTitle}>{tool.name}</span>
+        </div>
+        <span className={`${styles.toolBadge} ${badgeClass}`}>{status}</span>
+      </div>
+
+      <div className={styles.toolBody}>
+        <div className={styles.toolParam}>
+          {JSON.stringify(tool.args, null, 2)}
+        </div>
+
+        <div className={styles.toolFooter}>
+          <button
+            className={styles.executeBtn}
+            onClick={executeAction}
+            disabled={status === 'running'}
+          >
+            {status === 'running' ? (
+              <>
+                <Loader2 size={12} className={styles.pulse} />
+                <span>Running...</span>
+              </>
+            ) : status === 'success' ? (
+              <>
+                <CheckCircle2 size={12} />
+                <span>Re-run</span>
+              </>
+            ) : (
+              <>
+                <Play size={12} />
+                <span>Execute Action</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {output && <div className={styles.toolOutput}>{output}</div>}
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// MessageBubble Component
 // ---------------------------------------------------------------------------
 
 interface MessageBubbleProps {
   msg: AiChatMessage;
   onApplyPatch: (code: string) => void;
+  onOpenDiff: (code: string) => void;
+  onRunTerminal: (code: string) => void;
+  onFloatPhysics: (label: string, code: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  msg,
+  onApplyPatch,
+  onOpenDiff,
+  onRunTerminal,
+  onFloatPhysics,
+}) => {
   const [copiedBlock, setCopiedBlock] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
 
@@ -78,7 +322,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
     setTimeout(() => setCopiedAll(false), 2000);
   };
 
-  const segments = parseCodeBlocks(msg.content);
+  const segments = parseMessageSegments(msg.content);
 
   return (
     <div
@@ -108,11 +352,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
           </div>
         )}
 
-        {/* Content with code blocks */}
+        {/* Content with code blocks & structured tool calls */}
         <div className={styles.bubbleText}>
           {segments.map((seg, i) => {
+            if (seg.type === 'tool') {
+              return <ToolActionCard key={i} tool={seg.tool} />;
+            }
+
             if (seg.type === 'code') {
-              const isFirst = seg.lang !== 'plaintext';
+              const isShell =
+                seg.lang === 'bash' ||
+                seg.lang === 'sh' ||
+                seg.lang === 'shell' ||
+                seg.lang === 'terminal';
+
               return (
                 <div key={i} className={styles.codeBlockWrapper}>
                   <div className={styles.codeBlockHeader}>
@@ -124,20 +377,56 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
                         title="Copy code"
                       >
                         {copiedBlock === i ? (
-                          <><Check size={10} /><span>Copied</span></>
+                          <>
+                            <Check size={10} />
+                            <span>Copied</span>
+                          </>
                         ) : (
-                          <><Copy size={10} /><span>Copy</span></>
+                          <>
+                            <Copy size={10} />
+                            <span>Copy</span>
+                          </>
                         )}
                       </button>
-                      {isFirst && (
+
+                      {isShell ? (
                         <button
                           className={`${styles.codeAction} ${styles.applyBtn}`}
-                          onClick={() => onApplyPatch(seg.content)}
-                          title="Apply to active editor file"
+                          onClick={() => onRunTerminal(seg.content)}
+                          title="Run in Terminal"
                         >
-                          <Wrench size={10} /><span>Apply</span>
+                          <TerminalIcon size={10} />
+                          <span>Terminal</span>
                         </button>
+                      ) : (
+                        <>
+                          <button
+                            className={`${styles.codeAction} ${styles.applyBtn}`}
+                            onClick={() => onApplyPatch(seg.content)}
+                            title="Apply directly to active editor file"
+                          >
+                            <Wrench size={10} />
+                            <span>Apply</span>
+                          </button>
+                          <button
+                            className={styles.codeAction}
+                            onClick={() => onOpenDiff(seg.content)}
+                            title="Compare in Monaco Diff Viewer"
+                          >
+                            <GitCompare size={10} />
+                            <span>Diff</span>
+                          </button>
+                        </>
                       )}
+
+                      <button
+                        className={styles.codeAction}
+                        onClick={() => onFloatPhysics(`Code (${seg.lang})`, seg.content)}
+                        title="Spawn as node in AntiGravity Canvas"
+                      >
+                        <Atom size={10} />
+                        <span>Float</span>
+                      </button>
                     </div>
                   </div>
                   <pre className={styles.codeBlock}>
@@ -146,7 +435,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
                 </div>
               );
             }
-            // Plain text — render inline code with backtick syntax
+
+            // Plain text with inline code
             return (
               <span key={i} className={styles.plainText}>
                 {seg.content.split(/(`[^`]+`)/g).map((part, j) =>
@@ -156,7 +446,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
                     </code>
                   ) : (
                     part
-                  ),
+                  )
                 )}
               </span>
             );
@@ -168,9 +458,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
           <div className={styles.bubbleActions}>
             <button className={styles.copyBtn} onClick={handleCopyAll}>
               {copiedAll ? (
-                <><Check size={11} color="var(--color-success)" /><span>Copied</span></>
+                <>
+                  <Check size={11} color="var(--color-success)" />
+                  <span>Copied</span>
+                </>
               ) : (
-                <><Copy size={11} /><span>Copy all</span></>
+                <>
+                  <Copy size={11} />
+                  <span>Copy all</span>
+                </>
               )}
             </button>
           </div>
@@ -181,7 +477,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onApplyPatch }) => {
 };
 
 // ---------------------------------------------------------------------------
-// AiPanel (main component)
+// AiPanel Component
 // ---------------------------------------------------------------------------
 
 export const AiPanel: React.FC = () => {
@@ -190,7 +486,7 @@ export const AiPanel: React.FC = () => {
       id: 'welcome-msg',
       role: 'assistant',
       content:
-        'Hello! I am your AI engineering assistant in Ajson Studio.\n\nAttach active files, refactor selections, generate tests, or ask architectural questions.\n\n```typescript\n// Example: ask me to refactor this\nconst add = (a: number, b: number) => a + b;\n```',
+        'Hello! I am your AI engineering assistant in Ajson Studio.\n\nI can analyze your codebase, generate patches, spawn physics nodes, or run commands in your terminal.\n\n```tool:run_command\n{\n  "command": "git status"\n}\n```',
       timestamp: Date.now(),
     },
   ]);
@@ -201,18 +497,21 @@ export const AiPanel: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string>('claude-3-5-sonnet');
   const [attachedContext, setAttachedContext] = useState<string | null>(null);
 
-  const { activeTabId, tabs, updateContent } = useEditorStore();
+  const { activeTabId, tabs, updateContent, openDiff } = useEditorStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const streamUnsubRef = useRef<(() => void) | null>(null);
   const abortedRef = useRef(false);
 
-  // Load models
+  // Load available models
   useEffect(() => {
-    aiService.getProviders().then((m) => {
-      setModels(m);
-      if (m[0]) setSelectedModel(m[0].id);
-    }).catch(() => {});
+    aiService
+      .getProviders()
+      .then((m) => {
+        setModels(m);
+        if (m[0]) setSelectedModel(m[0].id);
+      })
+      .catch(() => {});
   }, []);
 
   // Auto-attach context when active tab changes
@@ -227,7 +526,7 @@ export const AiPanel: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent, isGenerating]);
 
-  // Subscribe to stream events
+  // Subscribe to live stream events
   useEffect(() => {
     if (typeof aiService.onStreamEvent === 'function') {
       const unsub = aiService.onStreamEvent((event) => {
@@ -235,8 +534,6 @@ export const AiPanel: React.FC = () => {
 
         if (event.type === 'text_delta') {
           setStreamingContent((prev) => prev + event.delta);
-        } else if (event.type === 'done') {
-          // Finalized by handleSend after sendMessage resolves
         }
       });
       streamUnsubRef.current = unsub;
@@ -324,21 +621,53 @@ export const AiPanel: React.FC = () => {
     }
   }, [inputVal, isGenerating, messages, selectedModel, activeTab, attachedContext]);
 
-  // Apply patch to active editor file
+  // Direct Editor Action: Apply patch to active file
   const handleApplyPatch = useCallback(
     (code: string) => {
       if (!activeTab || activeTab.type === 'diff') return;
       updateContent(activeTab.id, code);
     },
-    [activeTab, updateContent],
+    [activeTab, updateContent]
   );
+
+  // Direct Editor Action: Open Monaco Diff Viewer
+  const handleOpenDiff = useCallback(
+    (code: string) => {
+      if (!activeTab) return;
+      openDiff(activeTab.path, activeTab.content, code, false);
+    },
+    [activeTab, openDiff]
+  );
+
+  // Direct Terminal Action: Execute shell command
+  const handleRunTerminal = useCallback(async (code: string) => {
+    const cmd = code.trim().replace(/^[$>]\s*/gm, '');
+    const sessions = terminalService.listSessions();
+    let sessionId = sessions[0]?.id;
+    if (!sessionId) {
+      sessionId = await terminalService.createSession();
+    }
+    useLayoutStore.getState().setActiveBottomTab('terminal');
+    useLayoutStore.getState().setBottomPanelOpen(true);
+    void terminalService.runCommand(sessionId, cmd);
+  }, []);
+
+  // Direct Physics Action: Float code snippet as dynamic node in Canvas
+  const handleFloatPhysics = useCallback((label: string, code: string) => {
+    usePhysicsStore.getState().spawnNode({
+      label,
+      sublabel: `${code.slice(0, 35).replace(/\n/g, ' ')}...`,
+      type: 'ai',
+      color: '#a855f7',
+    });
+    useLayoutStore.getState().setActiveSidebarTab('physics');
+  }, []);
 
   const handleClear = () => {
     setMessages([]);
     setStreamingContent('');
   };
 
-  // Estimate token count (rough: 1 token ≈ 4 chars)
   const contextTokens = activeTab
     ? Math.ceil(Math.min(activeTab.content.length, 4000) / 4)
     : 0;
@@ -366,10 +695,17 @@ export const AiPanel: React.FC = () => {
         </IconButton>
       </div>
 
-      {/* Messages */}
+      {/* Messages Stream */}
       <div className={styles.messagesBody}>
         {messages.map((m) => (
-          <MessageBubble key={m.id} msg={m} onApplyPatch={handleApplyPatch} />
+          <MessageBubble
+            key={m.id}
+            msg={m}
+            onApplyPatch={handleApplyPatch}
+            onOpenDiff={handleOpenDiff}
+            onRunTerminal={handleRunTerminal}
+            onFloatPhysics={handleFloatPhysics}
+          />
         ))}
 
         {/* Live streaming bubble */}
@@ -388,7 +724,7 @@ export const AiPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Thinking indicator (before first token) */}
+        {/* Thinking indicator */}
         {isGenerating && !streamingContent && (
           <div className={styles.generatingIndicator}>
             <Sparkles size={14} color="var(--accent)" className={styles.pulse} />
@@ -422,7 +758,7 @@ export const AiPanel: React.FC = () => {
         <textarea
           className={styles.textarea}
           rows={3}
-          placeholder="Ask a question or request a code refactor..."
+          placeholder="Ask a question, request code diff, or run a command..."
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
           onKeyDown={(e) => {

@@ -170,9 +170,21 @@ export class IpcFileSystemService implements FileSystemService {
 // Terminal IPC Adapter
 // ---------------------------------------------------------------------------
 export class IpcTerminalService implements TerminalService {
+  private sessions = new Map<string, TerminalSession>();
+
   async createSession(options?: TerminalSessionOptions): Promise<string> {
     const payload = TerminalCreateRequestSchema.parse({ options });
     const res = (await getBridge().invoke(IpcChannels.TERMINAL_CREATE, payload)) as { id: string };
+    const session: TerminalSession = {
+      id: res.id,
+      title: options?.title || `Terminal ${this.sessions.size + 1}`,
+      cwd: options?.cwd || '',
+      shell: options?.shell || 'bash',
+      owner: options?.owner || 'user',
+      readOnly: options?.readOnly || false,
+      createdAt: Date.now(),
+    };
+    this.sessions.set(res.id, session);
     return res.id;
   }
 
@@ -187,6 +199,7 @@ export class IpcTerminalService implements TerminalService {
   }
 
   kill(id: string): void {
+    this.sessions.delete(id);
     const payload = TerminalKillRequestSchema.parse({ id });
     getBridge().invoke(IpcChannels.TERMINAL_KILL, payload).catch(() => {});
   }
@@ -204,7 +217,7 @@ export class IpcTerminalService implements TerminalService {
   }
 
   listSessions(): TerminalSession[] {
-    return [];
+    return Array.from(this.sessions.values());
   }
 
   getCwd(id: string): string {

@@ -58,7 +58,12 @@ function detectLanguage(path: string): string {
   return 'plaintext';
 }
 
-function loadPersistedTabs(): { tabs: EditorTab[]; activeTabId: string | null } {
+function loadPersistedTabs(): {
+  tabs: EditorTab[];
+  activeTabId: string | null;
+  splitLayout: SplitLayout;
+  secondaryActiveTabId: string | null;
+} {
   try {
     const raw = safeStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -67,6 +72,8 @@ function loadPersistedTabs(): { tabs: EditorTab[]; activeTabId: string | null } 
         return {
           tabs: parsed.tabs,
           activeTabId: parsed.activeTabId || parsed.tabs[0]?.id || null,
+          splitLayout: (parsed.splitLayout as SplitLayout) || 'none',
+          secondaryActiveTabId: parsed.secondaryActiveTabId || null,
         };
       }
     }
@@ -91,17 +98,27 @@ function loadPersistedTabs(): { tabs: EditorTab[]; activeTabId: string | null } 
       },
     ],
     activeTabId: initialPath,
+    splitLayout: 'none',
+    secondaryActiveTabId: null,
   };
 }
 
-function persistTabs(tabs: EditorTab[], activeTabId: string | null) {
+function persistTabs(
+  tabs: EditorTab[],
+  activeTabId: string | null,
+  splitLayout: SplitLayout = 'none',
+  secondaryActiveTabId: string | null = null
+) {
   try {
     const serialized = tabs.map((t) => ({
       ...t,
       // Don't persist temporary diff tabs
       type: t.type === 'diff' ? undefined : t.type,
     }));
-    safeStorage.setItem(STORAGE_KEY, JSON.stringify({ tabs: serialized, activeTabId }));
+    safeStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ tabs: serialized, activeTabId, splitLayout, secondaryActiveTabId })
+    );
   } catch {
     // Ignore storage write failures
   }
@@ -161,8 +178,8 @@ export const useEditorStore = create<EditorState>((set, get) => {
   return {
     tabs: initial.tabs,
     activeTabId: initial.activeTabId,
-    splitLayout: 'none',
-    secondaryActiveTabId: null,
+    splitLayout: initial.splitLayout,
+    secondaryActiveTabId: initial.secondaryActiveTabId,
 
     openFile: async (path, options) => {
       const { tabs } = get();
@@ -387,10 +404,12 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
     setSplitLayout: (layout) => {
       set({ splitLayout: layout });
+      persistTabs(get().tabs, get().activeTabId, layout, get().secondaryActiveTabId);
     },
 
     setSecondaryActiveTabId: (id) => {
       set({ secondaryActiveTabId: id });
+      persistTabs(get().tabs, get().activeTabId, get().splitLayout, id);
     },
   };
 });
